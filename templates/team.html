@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Team Gallery</title>
+  <style>
+    body {
+      margin: 0;
+      background-repeat: no-repeat;
+      background-size: cover;
+      background-image: url('./team/nit_dehli.png');
+      background-color: black;
+      color: white;
+      font-family: sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .gallery {
+      margin-bottom: 3rem;
+      background: linear-gradient(135deg, #dbeafe, #93c5fd); /* Light blue gradient */
+      border-top-right-radius: 40px;
+      border-bottom-left-radius: 40px;
+      width: 40rem;
+      height: 35rem;
+      perspective: 2000px;
+      overflow: hidden;
+      box-shadow: 0 0 40px rgba(0, 204, 255, 0.4); /* Light glow */
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 1rem;
+    }
+
+    .gallery h2 {
+      margin: 0;
+      margin-bottom: 1rem;
+      font-size: 44px;
+      color: #000;
+    }
+
+    .carousel {
+      width: 80%;
+      height: 60%;
+      position: relative;
+      transform-style: preserve-3d;
+      animation: rotate 40s infinite linear;
+    }
+
+    .carousel-item {
+      position: absolute;
+      width: 180px;
+      height: 180px;
+      left: 35%;
+      top: 20%;
+      transform-origin: center center -40px; /* Medium radius */
+      text-align: center;
+      color: white;
+      transform-style: preserve-3d;
+    }
+
+    .carousel-item img {
+      width: 100%;
+      height: auto;
+      border-bottom-right-radius: 20px;
+      border-top-left-radius: 20px;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+    }
+
+    .caption {
+      margin-top: 5px;
+      font-size: 16px;
+      color: #000;
+    }
+
+    @keyframes rotate {
+      from {
+        transform: rotateY(0deg);
+      }
+      to {
+        transform: rotateY(360deg);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="gallery">
+    <h2>Team Members</h2>
+    <div class="carousel">
+      <div class="carousel-item" style="transform: rotateY(0deg) translateZ(120px);">
+        <img src="./team/sumit.jpg" alt="Sumit">
+        <div class="caption">Sumit Kumar</div>
+      </div>
+      <div class="carousel-item" style="transform: rotateY(90deg) translateZ(120px);">
+        <img src="./team/tushar.jpg" alt="abhishek">
+        <div class="caption">Abishek Jha</div>
+      </div>
+      
+      
+    </div>
+  </div>
+</body>
+</html>
