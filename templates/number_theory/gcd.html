@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>GCD - DSA Verse</title>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --primary-color: #4ade80;
+        --dark-bg: #111827;
+        --light-dark-bg: #1f2937;
+        --card-bg: rgba(31, 41, 55, 0.5);
+        --text-color: #e5e7eb;
+        --border-color: rgba(255, 255, 255, 0.1);
+        --danger: #f43f5e;
+        --yellow: #fbbf24;
+      }
+      html,
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: "Poppins", sans-serif;
+        background: linear-gradient(
+          135deg,
+          var(--light-dark-bg),
+          var(--dark-bg)
+        );
+        color: var(--text-color);
+        min-height: 100vh;
+        text-align: center;
+        overflow-x: hidden;
+      }
+      p:nth-child(1) {
+        padding: 24px 0 16px 0;
+        text-align: center;
+        font-family: "Poppins", sans-serif;
+        font-weight: 700;
+        font-size: clamp(2rem, 4vw, 2.7rem);
+        text-transform: uppercase;
+        color: #fff;
+        text-shadow: 0 0 15px rgba(74, 222, 128, 0.6),
+          0 0 25px rgba(74, 222, 128, 0.4);
+        letter-spacing: 2px;
+        animation: float 3s ease-in-out infinite;
+      }
+      @keyframes float {
+        0% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-10px);
+        }
+        100% {
+          transform: translateY(0);
+        }
+      }
+      .canvas-container {
+        background: var(--card-bg);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        margin: 32px auto 24px auto;
+        width: 100%;
+        max-width: 1050px;
+        padding: 1.5rem 0.5rem 2rem 0.5rem;
+      }
+      .grid {
+        background: transparent;
+        border-radius: 8px;
+        display: block;
+        margin: 0 auto;
+        width: 1000px;
+        height: 400px;
+        max-width: 100%;
+        max-height: 400px;
+      }
+      .controls-panel {
+        margin-top: 32px;
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+      }
+      button {
+        background-color: var(--primary-color);
+        color: var(--dark-bg);
+        border: none;
+        padding: 0 36px;
+        border-radius: 50px;
+        font-family: "Poppins", sans-serif;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(74, 222, 128, 0.2);
+        height: 44px;
+        letter-spacing: 1px;
+      }
+      button:hover {
+        transform: scale(1.05) translateY(-2px);
+        box-shadow: 0 8px 25px rgba(74, 222, 128, 0.4);
+      }
+      button:disabled {
+        opacity: 0.65;
+        cursor: not-allowed;
+      }
+      .back-link {
+        text-decoration: none;
+      }
+      .heading {
+        font-weight: 700;
+        font-size: clamp(2.5rem, 5vw, 3.5rem);
+        color: #fff;
+        text-shadow: 0 0 15px rgba(74, 222, 128, 0.6);
+        transition: transform 0.3s ease;
+      }
+      .back-link:hover .heading {
+        transform: scale(1.05);
+      }
+      @media (max-width: 800px) {
+        .canvas-container {
+          padding: 0.7rem 0.2rem 1.2rem 0.2rem;
+        }
+        .controls-panel {
+          flex-direction: column;
+          gap: 0.7rem;
+        }
+        button {
+          width: 90%;
+          min-width: 120px;
+        }
+        .grid {
+          width: 98vw !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <a href="../number_theory.html" class="back-link"><p>GCD</p></a>
+    <div class="canvas-container">
+      <canvas class="grid" width="1000" height="400"></canvas>
+    </div>
+    <div class="controls-panel">
+      <button>Calculate</button>
+    </div>
+    <script>
+      // Helper: Draw rounded rectangle for glassy effect
+      function drawRoundRect(ctx, x, y, w, h, r, fill, stroke, shadow = false) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.lineTo(x + w - r, y);
+        ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+        ctx.lineTo(x + w, y + h - r);
+        ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+        ctx.lineTo(x + r, y + h);
+        ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+        ctx.lineTo(x, y + r);
+        ctx.quadraticCurveTo(x, y, x + r, y);
+        ctx.closePath();
+        if (shadow) {
+          ctx.shadowColor = "rgba(74,222,128,0.18)";
+          ctx.shadowBlur = 14;
+          ctx.shadowOffsetX = 0;
+          ctx.shadowOffsetY = 4;
+        }
+        if (fill) {
+          ctx.fillStyle = fill;
+          ctx.fill();
+        }
+        if (stroke) {
+          ctx.strokeStyle = stroke;
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      // Main
+      let ctx = document.querySelector("canvas").getContext("2d");
+      let num1 = Math.floor(Math.random() * (50 - 2) + 2);
+      let num2 = Math.floor(Math.random() * (num1 - 2) + 2);
+      let time_delay = 1200;
+
+      function init() {
+        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        createBox(num1, num2);
+        createGrid(num1, num2);
+        document.querySelector("button").addEventListener("click", () => {
+          document.querySelector("button").disabled = true;
+          gcd(num1, num2);
+        });
+      }
+
+      // Fixed size for a and b boxes
+      const boxWidth = 120,
+        boxHeight = 48,
+        boxRadius = 12;
+      const boxX = 36,
+        boxY1 = 36,
+        boxY2 = boxY1 + boxHeight + 18;
+
+      function createBox(a, b) {
+        // Draw both boxes at the top left, vertically stacked, with spacing
+        // Card for a
+        drawRoundRect(
+          ctx,
+          boxX,
+          boxY1,
+          boxWidth,
+          boxHeight,
+          boxRadius,
+          "rgba(244,63,94,0.18)",
+          "#f43f5e",
+          true
+        );
+        // Card for b
+        drawRoundRect(
+          ctx,
+          boxX,
+          boxY2,
+          boxWidth,
+          boxHeight,
+          boxRadius,
+          "rgba(251,191,36,0.18)",
+          "#fbbf24",
+          true
+        );
+        ctx.font = "bold 20px 'Poppins', sans-serif";
+        ctx.fillStyle = "#fff";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(`a = ${a}`, boxX + boxWidth / 2, boxY1 + boxHeight / 2);
+        ctx.fillText(`b = ${b}`, boxX + boxWidth / 2, boxY2 + boxHeight / 2);
+      }
+
+      function createGrid(a, b, color = "#4ade80") {
+        // Main step card in center
+        let cardW = 600,
+          cardH = 110,
+          cardX = (ctx.canvas.width - cardW) / 2,
+          cardY = 120,
+          r = 22;
+        drawRoundRect(
+          ctx,
+          cardX,
+          cardY,
+          cardW,
+          cardH,
+          r,
+          "rgba(31,41,55,0.92)",
+          "#4ade80",
+          true
+        );
+
+        // GCD Step Math
+        let p = Math.floor(a / b);
+        ctx.font = "bold 25px 'Poppins', sans-serif";
+        ctx.fillStyle = "#fff";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        if (b != 0) {
+          ctx.fillText(
+            `${a} = ${b} × ${p} + ${a % b}`,
+            ctx.canvas.width / 2,
+            cardY + 38
+          );
+          ctx.font = "bold 17px 'Poppins', sans-serif";
+          ctx.fillStyle = "#fbbf24";
+          ctx.fillText(
+            `(Quotient: ${p}, Remainder: ${a % b})`,
+            ctx.canvas.width / 2,
+            cardY + 80
+          );
+        } else {
+          ctx.fillText(`GCD = ${a}`, ctx.canvas.width / 2, cardY + cardH / 2);
+        }
+
+        // Visual bars for a and b just below the card, side by side
+        let barW = 220,
+          barH = 40,
+          gap = 30;
+        let barX1 = ctx.canvas.width / 2 - barW - gap / 2,
+          barX2 = ctx.canvas.width / 2 + gap / 2;
+        let barY = cardY + cardH + 40;
+        // a bar
+        drawRoundRect(
+          ctx,
+          barX1,
+          barY,
+          barW,
+          barH,
+          8,
+          "rgba(74,222,128,0.15)",
+          "#4ade80"
+        );
+        ctx.fillStyle = "#4ade80";
+        ctx.font = "bold 20px 'Poppins', sans-serif";
+        ctx.fillText(`a: ${a}`, barX1 + barW / 2, barY + barH / 2);
+        // b bar
+        drawRoundRect(
+          ctx,
+          barX2,
+          barY,
+          barW,
+          barH,
+          8,
+          "rgba(251,191,36,0.13)",
+          "#fbbf24"
+        );
+        ctx.fillStyle = "#fbbf24";
+        ctx.fillText(`b: ${b}`, barX2 + barW / 2, barY + barH / 2);
+      }
+
+      async function gcd(num1, num2) {
+        while (num1 !== 0 && num2 !== 0) {
+          let rem = Math.floor(num1 / num2);
+          if (num1 < num2) {
+            let temp = num1;
+            num1 = num2;
+            num2 = temp;
+          }
+          await sleep(time_delay).then(() => {
+            ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+            createBox(num1, num2);
+            createGrid(num1, num2);
+          });
+          let mod = num1 % num2;
+          num1 = num2;
+          num2 = mod;
+        }
+        await sleep(time_delay).then(() => {
+          ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+          createBox(num1, num2);
+          createGrid(num1, num2);
+        });
+        await sleep(time_delay * 1.5).then(() => {
+          window.location.reload();
+        });
+      }
+
+      function sleep(ms) {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+      }
+
+      window.onload = init;
+    </script>
+  </body>
+</html>

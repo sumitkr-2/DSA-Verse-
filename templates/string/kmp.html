@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>KMP Search - DSA Verse</title>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Roboto+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      :root {
+        --primary-color: #4ade80; /* Green for match */
+        --dark-bg: #111827;
+        --light-dark-bg: #1f2937;
+        --card-bg: rgba(31, 41, 55, 0.5);
+        --text-color: #e5e7eb;
+        --border-color: rgba(255, 255, 255, 0.1);
+        --mismatch-color: #f87171; /* Red for mismatch */
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        font-family: "Poppins", sans-serif;
+        background: linear-gradient(
+          135deg,
+          var(--light-dark-bg),
+          var(--dark-bg)
+        );
+        color: var(--text-color);
+        min-height: 100vh;
+        overflow: hidden;
+        text-align: center;
+      }
+
+      #main-content {
+        padding: 3rem 1.5rem;
+        max-width: 1050px;
+        margin: 0 auto;
+      }
+      .page-header {
+        text-align: center;
+        margin-bottom: 2.5rem;
+      }
+      .back-link {
+        text-decoration: none;
+      }
+      .heading {
+        font-weight: 700;
+        font-size: clamp(2.5rem, 5vw, 3.5rem);
+        color: #fff;
+        text-shadow: 0 0 15px rgba(74, 222, 128, 0.6);
+        transition: transform 0.3s ease;
+      }
+      .back-link:hover .heading {
+        transform: scale(1.05);
+      }
+
+      .canvas-container {
+        background: var(--card-bg);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 1rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        margin-bottom: 2rem;
+      }
+      .grid {
+        width: 100%;
+        height: auto;
+        border-radius: 8px;
+      }
+
+      .controls-panel {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-bottom: 1.5rem;
+      }
+      .controls-panel input {
+        background: var(--dark-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 0.75rem;
+        color: var(--text-color);
+        font-family: "Roboto Mono", monospace;
+        font-size: 1rem;
+        width: 250px;
+      }
+      .control-btn {
+        background-color: var(--primary-color);
+        color: var(--dark-bg);
+        border: none;
+        padding: 0.75rem 2rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+      .control-btn:hover {
+        transform: scale(1.05);
+      }
+      .control-btn:disabled {
+        background-color: #4b5563;
+        cursor: not-allowed;
+      }
+
+      /* Legend */
+      .legend {
+        display: flex;
+        justify-content: center;
+        gap: 1.5rem;
+      }
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .legend-color {
+        width: 20px;
+        height: 20px;
+        border-radius: 4px;
+        border: 1px solid var(--border-color);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="main-content">
+      <div class="page-header">
+        <a href="../string.html" class="back-link"
+          ><h1 class="heading">KMP Search</h1></a
+        >
+      </div>
+      <div class="canvas-container">
+        <canvas class="grid" width="1000" height="350"></canvas>
+      </div>
+      <div class="controls-panel">
+        <input id="text-input" value="ABABDABACDABABCABAB" />
+        <input id="pattern-input" value="ABABCABAB" />
+        <button class="control-btn visualize">Compare</button>
+      </div>
+      <div class="legend">
+        <div class="legend-item">
+          <div
+            class="legend-color"
+            style="background-color: var(--primary-color)"
+          ></div>
+          <span>Match</span>
+        </div>
+        <div class="legend-item">
+          <div
+            class="legend-color"
+            style="background-color: var(--mismatch-color)"
+          ></div>
+          <span>Mismatch</span>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const ctx = document.querySelector("canvas").getContext("2d");
+      const time_delay = 800;
+      let text, pattern, lps;
+
+      const theme = {
+        primary: getComputedStyle(document.documentElement)
+          .getPropertyValue("--primary-color")
+          .trim(),
+        mismatch: getComputedStyle(document.documentElement)
+          .getPropertyValue("--mismatch-color")
+          .trim(),
+        text: getComputedStyle(document.documentElement)
+          .getPropertyValue("--text-color")
+          .trim(),
+        dark: getComputedStyle(document.documentElement)
+          .getPropertyValue("--dark-bg")
+          .trim(),
+        cardBg: "#374151",
+      };
+
+      function calculateLPS() {
+        const m = pattern.length;
+        lps = Array(m).fill(0);
+        let length = 0;
+        let i = 1;
+        while (i < m) {
+          if (pattern[i] === pattern[length]) {
+            length++;
+            lps[i] = length;
+            i++;
+          } else {
+            if (length !== 0) {
+              length = lps[length - 1];
+            } else {
+              lps[i] = 0;
+              i++;
+            }
+          }
+        }
+      }
+
+      function render(i_ptr, j_ptr, status = "comparing", foundAt = []) {
+        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        const barWidth = 45;
+        const barHeight = 60;
+        const gap = 5;
+
+        const drawString = (
+          str,
+          y_pos,
+          label,
+          ptr,
+          ptr_label,
+          highlightIndices,
+          highlightColor
+        ) => {
+          ctx.fillStyle = theme.text;
+          ctx.font = "600 16px Poppins";
+          ctx.textAlign = "left";
+          ctx.fillText(label, 10, y_pos - 15);
+
+          for (let k = 0; k < str.length; k++) {
+            let bgColor = theme.cardBg;
+            if (highlightIndices.includes(k)) bgColor = highlightColor;
+
+            const x = k * (barWidth + gap) + 10;
+            ctx.fillStyle = bgColor;
+            ctx.fillRect(x, y_pos, barWidth, barHeight);
+
+            ctx.fillStyle = theme.text;
+            ctx.font = "600 18px 'Roboto Mono'";
+            ctx.textAlign = "center";
+            ctx.fillText(str[k], x + barWidth / 2, y_pos + barHeight / 2 + 5);
+
+            if (k === ptr) {
+              ctx.fillStyle = theme.primary;
+              ctx.fillText(ptr_label, x + barWidth / 2, y_pos + barHeight + 20);
+            }
+          }
+        };
+
+        // Determine highlight colors and indices
+        let textHighlight =
+          foundAt.length > 0
+            ? Array.from(
+                { length: pattern.length },
+                (_, k) => k + foundAt[foundAt.length - 1]
+              )
+            : [];
+        let patternHighlight =
+          foundAt.length > 0
+            ? Array.from({ length: pattern.length }, (_, k) => k)
+            : [];
+        let highlightColor = theme.primary;
+
+        if (status === "match") {
+          textHighlight.push(i_ptr);
+          patternHighlight.push(j_ptr);
+        } else if (status === "mismatch") {
+          highlightColor = theme.mismatch;
+          textHighlight.push(i_ptr);
+          patternHighlight.push(j_ptr);
+        }
+
+        drawString(
+          text,
+          50,
+          "Text:",
+          i_ptr,
+          "i",
+          textHighlight,
+          highlightColor
+        );
+        drawString(
+          pattern,
+          160,
+          "Pattern:",
+          j_ptr,
+          "j",
+          patternHighlight,
+          highlightColor
+        );
+
+        // Draw LPS array
+        drawString(lps, 270, "LPS Array:", -1, "", [], theme.cardBg);
+      }
+
+      async function animateKMP() {
+        const button = document.querySelector(".visualize");
+        button.disabled = true;
+
+        let i = 0; // pointer for text
+        let j = 0; // pointer for pattern
+        let foundAt = [];
+
+        while (i < text.length) {
+          render(i, j);
+          await sleep(time_delay);
+
+          if (pattern[j] === text[i]) {
+            render(i, j, "match", foundAt);
+            await sleep(time_delay);
+            i++;
+            j++;
+          }
+
+          if (j === pattern.length) {
+            // Pattern found
+            foundAt.push(i - j);
+            render(i, j, "found", foundAt);
+            await sleep(time_delay * 1.5);
+            j = lps[j - 1]; // Look for next occurrence
+          } else if (i < text.length && pattern[j] !== text[i]) {
+            render(i, j, "mismatch", foundAt);
+            await sleep(time_delay * 1.5);
+            if (j !== 0) {
+              j = lps[j - 1];
+            } else {
+              i++;
+            }
+          }
+        }
+
+        if (foundAt.length > 0) {
+          alert(`Pattern found at indices: ${foundAt.join(", ")}`);
+        } else {
+          alert("Pattern not found in the text.");
+        }
+        button.disabled = false;
+      }
+
+      function sleep(ms) {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+      }
+
+      function init() {
+        text = document.getElementById("text-input").value;
+        pattern = document.getElementById("pattern-input").value;
+        if (!text || !pattern) {
+          alert("Please provide both text and a pattern.");
+          return;
+        }
+        calculateLPS();
+        render(-1, -1);
+      }
+
+      document.querySelector(".visualize").addEventListener("click", () => {
+        init(); // Recalculate LPS if inputs change
+        animateKMP();
+      });
+
+      init();
+    </script>
+  </body>
+</html>

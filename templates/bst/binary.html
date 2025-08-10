@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Binary Search Tree - DSA Verse</title>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      /* --- Global Styles & Resets --- */
+      :root {
+        --primary-color: #4ade80;
+        --dark-bg: #111827;
+        --light-dark-bg: #1f2937;
+        --card-bg: rgba(31, 41, 55, 0.5);
+        --text-color: #e5e7eb;
+        --border-color: rgba(255, 255, 255, 0.1);
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        font-family: "Poppins", sans-serif;
+        background: linear-gradient(
+          135deg,
+          var(--light-dark-bg),
+          var(--dark-bg)
+        );
+        color: var(--text-color);
+        min-height: 100vh;
+        overflow-x: hidden;
+        text-align: center; /* Center align content like controls */
+      }
+
+      /* --- Custom Scrollbar --- */
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: var(--dark-bg);
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--primary-color);
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #36a166;
+      }
+
+      /* --- Main Content Layout --- */
+      #main-content {
+        padding: 3rem 1.5rem;
+        max-width: 1350px; /* Increased width to accommodate canvas */
+        margin: 0 auto;
+      }
+
+      /* --- Page Header with Back Link --- */
+      .page-header {
+        text-align: center;
+        margin-bottom: 2.5rem;
+      }
+      .back-link {
+        text-decoration: none;
+      }
+      .heading {
+        font-weight: 700;
+        font-size: clamp(2rem, 4vw, 3rem);
+        color: #fff;
+        text-shadow: 0 0 15px rgba(74, 222, 128, 0.6);
+        display: inline-block;
+        transition: transform 0.3s ease;
+      }
+      .back-link:hover .heading {
+        transform: scale(1.05);
+      }
+
+      /* --- Canvas Container --- */
+      .canvas-container {
+        background: var(--card-bg);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 1rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        margin-bottom: 2rem;
+      }
+      .grid {
+        width: 100%;
+        height: auto;
+        border-radius: 8px;
+      }
+
+      /* --- Controls Panel --- */
+      .controls-panel {
+        padding: 1rem 0;
+      }
+      .insert {
+        background-color: var(--primary-color);
+        color: var(--dark-bg);
+        border: none;
+        padding: 0.75rem 2.5rem;
+        border-radius: 50px; /* Pill shape */
+        font-family: "Poppins", sans-serif;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(74, 222, 128, 0.2);
+      }
+      .insert:hover {
+        transform: scale(1.05) translateY(-2px);
+        box-shadow: 0 8px 25px rgba(74, 222, 128, 0.4);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="main-content">
+      <div class="page-header">
+        <a href="../datastructures.html" class="back-link">
+          <h1 class="heading">Binary Search Tree</h1>
+        </a>
+      </div>
+
+      <div class="canvas-container">
+        <canvas class="grid" width="1300" height="550"></canvas>
+      </div>
+
+      <div class="controls-panel">
+        <button class="insert">Insert</button>
+      </div>
+    </div>
+
+    <script>
+      // --- Main Setup ---
+      const arr = [
+        50, 25, 20, 23, 21, 24, 40, 45, 42, 75, 60, 55, 65, 80, 85, 90, 78, 76,
+        79, 18, 19, 17, 27, 26, 28, 46, 54, 56, 64, 66, 84,
+      ];
+      const width = 30;
+      const mul = 3;
+      const end = 4;
+      const start = 10;
+
+      class Node {
+        xx = "";
+        yy = "";
+        value = "";
+        left;
+        right;
+      }
+
+      const root = new Node();
+      const ctx = document.querySelector("canvas").getContext("2d");
+      let pos = -1;
+
+      init();
+
+      // --- Utility Functions ---
+      function init() {
+        draw_array();
+        let boot = root;
+        create_tree_structure(start, ctx.canvas.width - start, 0, 0, boot);
+        add_listeners();
+      }
+
+      function add_listeners() {
+        document.querySelector(".insert").addEventListener("click", () => {
+          pos++;
+          if (pos >= arr.length) {
+            alert("No more elements to insert in BST!");
+            pos = arr.length - 1; // Prevent pos from going out of bounds
+            return;
+          }
+          // Redraw the entire canvas to clear previous state and show update
+          ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+          draw_array();
+          create_tree_structure(start, ctx.canvas.width - start, 0, 0, root); // Redraw placeholder tree
+
+          // Re-insert all previous elements silently
+          for (let i = 0; i <= pos; i++) {
+            insert_into_tree(root, arr[i]);
+          }
+        });
+      }
+
+      function draw_array() {
+        const size = arr.length;
+        const pw = ctx.canvas.width / size;
+        const h = 50;
+
+        for (let i = 0; i < size; i++) {
+          ctx.beginPath();
+          // STYLING CHANGE: Colors updated for dark theme
+          ctx.fillStyle = pos === i ? "#4ade80" : "#374151"; // Highlight active with primary color
+          ctx.fillRect(i * pw, ctx.canvas.height - h, pw, h);
+
+          ctx.strokeStyle = "rgba(255, 255, 255, 0.2)"; // Lighter border
+          ctx.strokeRect(i * pw, ctx.canvas.height - h, pw, h);
+
+          ctx.fillStyle = pos === i ? "#111827" : "#e5e7eb"; // Dark text on highlight
+          ctx.font = "600 14px Poppins"; // STYLING CHANGE: Consistent font
+          ctx.fillText(
+            arr[i],
+            i * pw + pw / 2 - 7,
+            ctx.canvas.height - h + h / 2 + 5
+          );
+          ctx.closePath();
+        }
+      }
+
+      function create_tree_structure(x, y, y1, num, currentNode) {
+        const initial_x = x;
+        const initial_y = y;
+        x = (x + y) / 2;
+        y1 = y1 + width * mul;
+
+        // STYLING CHANGE: Placeholder nodes are now semi-transparent white
+        ctx.beginPath();
+        ctx.fillStyle = "rgba(255, 255, 255, 0.1)";
+        ctx.moveTo(x + width, y1); // moveTo must be called before arc
+        ctx.arc(x, y1, width, 0, Math.PI * 2, true);
+        ctx.fill();
+
+        currentNode.xx = x;
+        currentNode.yy = y1;
+        currentNode.value = "";
+        currentNode.pre = new Node();
+        currentNode.next = new Node();
+
+        if (num === end) {
+          return;
+        }
+
+        // STYLING CHANGE: Tree lines are now lighter for dark background
+        ctx.beginPath();
+        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
+
+        // Draw left pointer
+        ctx.moveTo(x, y1);
+        ctx.lineTo((initial_x + x) / 2, y1 + width * mul);
+        ctx.stroke();
+        create_tree_structure(initial_x, x, y1, num + 1, currentNode.pre);
+
+        // Draw right pointer
+        ctx.moveTo(x, y1);
+        ctx.lineTo((initial_y + x) / 2, y1 + width * mul);
+        ctx.stroke();
+        create_tree_structure(x, initial_y, y1, num + 1, currentNode.next);
+      }
+
+      function insert_into_tree(currentNode, value) {
+        if (currentNode.value === "") {
+          // Node is empty, insert here
+          ctx.fillStyle = "#e5e7eb"; // STYLING CHANGE: Consistent text color
+          ctx.font = "600 16px Poppins"; // STYLING CHANGE: Consistent font
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(value, currentNode.xx, currentNode.yy);
+          currentNode.value = value;
+          return;
+        }
+
+        if (value < currentNode.value) {
+          insert_into_tree(currentNode.pre, value);
+        } else {
+          insert_into_tree(currentNode.next, value);
+        }
+      }
+    </script>
+  </body>
+</html>

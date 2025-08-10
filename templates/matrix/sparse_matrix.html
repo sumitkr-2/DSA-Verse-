@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Sparse Matrix - DSA Verse</title>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --primary-color: #4ade80;
+        --dark-bg: #111827;
+        --light-dark-bg: #1f2937;
+        --card-bg: rgba(31, 41, 55, 0.5);
+        --text-color: #e5e7eb;
+        --border-color: rgba(255, 255, 255, 0.1);
+        --danger: #f43f5e;
+        --yellow: #fbbf24;
+      }
+      html,
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: "Poppins", sans-serif;
+        background: linear-gradient(
+          135deg,
+          var(--light-dark-bg),
+          var(--dark-bg)
+        );
+        color: var(--text-color);
+        min-height: 100vh;
+        text-align: center;
+        overflow-x: hidden;
+      }
+      p:nth-child(1) {
+        padding: 24px 0 16px 0;
+        text-align: center;
+        font-family: "Poppins", sans-serif;
+        font-weight: 700;
+        font-size: clamp(2rem, 4vw, 2.7rem);
+        text-transform: uppercase;
+        color: #fff;
+        text-shadow: 0 0 15px rgba(74, 222, 128, 0.6),
+          0 0 25px rgba(74, 222, 128, 0.4);
+        letter-spacing: 2px;
+        animation: float 3s ease-in-out infinite;
+      }
+      @keyframes float {
+        0% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-10px);
+        }
+        100% {
+          transform: translateY(0);
+        }
+      }
+      .canvas-container {
+        background: var(--card-bg);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        margin: 32px auto 24px auto;
+        width: 100%;
+        max-width: 1050px;
+        padding: 1.5rem 0.5rem 2rem 0.5rem;
+      }
+      .grid {
+        background: transparent;
+        border-radius: 8px;
+        display: block;
+        margin: 0 auto;
+        width: 1000px;
+        height: 550px;
+        max-width: 100%;
+        max-height: 550px;
+      }
+      .controls-panel {
+        margin-top: 32px;
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+      }
+      button.transpose_button,
+      button.transpose_button_sec {
+        background-color: var(--primary-color);
+        color: var(--dark-bg);
+        border: none;
+        padding: 0 44px;
+        border-radius: 50px;
+        font-family: "Poppins", sans-serif;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(74, 222, 128, 0.2);
+        height: 44px;
+        letter-spacing: 1px;
+        margin: 0 10px;
+        display: inline-block;
+      }
+      button.transpose_button:hover,
+      button.transpose_button_sec:hover {
+        transform: scale(1.05) translateY(-2px);
+        box-shadow: 0 8px 25px rgba(74, 222, 128, 0.4);
+      }
+      button.transpose_button:disabled,
+      button.transpose_button_sec:disabled {
+        opacity: 0.65;
+        cursor: not-allowed;
+      }
+      .back-link {
+        text-decoration: none;
+      }
+      .heading {
+        font-weight: 700;
+        font-size: clamp(2.5rem, 5vw, 3.5rem);
+        color: #fff;
+        text-shadow: 0 0 15px rgba(74, 222, 128, 0.6);
+        transition: transform 0.3s ease;
+      }
+      .back-link:hover .heading {
+        transform: scale(1.05);
+      }
+      @media (max-width: 800px) {
+        .canvas-container {
+          padding: 0.7rem 0.2rem 1.2rem 0.2rem;
+        }
+        .controls-panel {
+          flex-direction: column;
+          gap: 0.7rem;
+        }
+        button.transpose_button,
+        button.transpose_button_sec {
+          width: 90%;
+          min-width: 120px;
+        }
+        .grid {
+          width: 98vw !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <a href="../matrix.html" class="back-link"><p>Sparse Matrix</p></a>
+    <div class="canvas-container">
+      <canvas class="grid" width="1000" height="550"></canvas>
+    </div>
+    <div class="controls-panel">
+      <button class="transpose_button">Sparse Matrix</button>
+      <button class="transpose_button_sec" disabled>Transpose</button>
+    </div>
+    <script>
+      // Helper: Draw rounded rectangle for glassy effect
+      function drawRoundRect(ctx, x, y, w, h, r, fill, stroke, shadow = false) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.lineTo(x + w - r, y);
+        ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+        ctx.lineTo(x + w, y + h - r);
+        ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+        ctx.lineTo(x + r, y + h);
+        ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+        ctx.lineTo(x, y + r);
+        ctx.quadraticCurveTo(x, y, x + r, y);
+        ctx.closePath();
+        if (shadow) {
+          ctx.shadowColor = "rgba(74,222,128,0.18)";
+          ctx.shadowBlur = 10;
+          ctx.shadowOffsetX = 0;
+          ctx.shadowOffsetY = 2;
+        }
+        if (fill) {
+          ctx.fillStyle = fill;
+          ctx.fill();
+        }
+        if (stroke) {
+          ctx.strokeStyle = stroke;
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      // Main
+      let ctx = document.querySelector("canvas").getContext("2d");
+      let arr = [];
+      let sp = [];
+      let time_delay = 700;
+      let size = 5;
+      let max = 8;
+      let per_width = (ctx.canvas.width - 10) / (2 * size);
+      let per_height = ctx.canvas.height / (2 * size);
+
+      function init() {
+        arr = [];
+        sp = [];
+        initialize_array();
+        draw_matrix_left();
+        document.querySelector(".transpose_button").disabled = false;
+        document.querySelector(".transpose_button_sec").disabled = true;
+        document.querySelector(".transpose_button").onclick = async () => {
+          document.querySelector(".transpose_button").disabled = true;
+          document.querySelector(".transpose_button_sec").disabled = false;
+          await animate_sparse_right();
+        };
+        document.querySelector(".transpose_button_sec").onclick = async () => {
+          document.querySelector(".transpose_button_sec").disabled = true;
+          await animate_transpose_left();
+        };
+      }
+
+      function initialize_array() {
+        let p = 0;
+        let mx = max;
+        for (let i = 0; i < size; i++) {
+          let temp = [];
+          for (let j = 0; j < size; j++) {
+            if (p >= mx) {
+              temp.push(0);
+            } else {
+              let b = Math.floor(Math.random() * 2);
+              temp.push(b);
+              if (b === 1) p++;
+            }
+          }
+          arr.push(temp);
+        }
+        for (let i = 0; i < size; i++) {
+          for (let j = 0; j < size; j++) {
+            if (arr[i][j] !== 0) {
+              arr[i][j] = Math.floor(Math.random() * 99 + 1);
+              sp.push([i, j, arr[i][j]]);
+            }
+          }
+        }
+      }
+
+      function draw_matrix_left() {
+        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        // Draw original matrix (left)
+        for (let i = 0; i < size; i++) {
+          for (let j = 0; j < size; j++) {
+            draw_matrix_cell(i, j, arr[i][j] ? "#4ade80" : "#222", arr[i][j]);
+          }
+        }
+        // Label
+        ctx.font = "bold 26px 'Poppins', sans-serif";
+        ctx.fillStyle = "#fff";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("Original Matrix", ctx.canvas.width / 4, 335);
+      }
+
+      function draw_matrix_cell(i, j, color, value) {
+        let gapx = 0,
+          gapy = 0;
+        let x = gapx + i * per_width + 10;
+        let y = gapy + j * per_height + 10;
+        let w = per_width - 20;
+        let h = per_height - 20;
+        let r = 16;
+        drawRoundRect(ctx, x, y, w, h, r, color, "#4ade80", true);
+        ctx.font = "bold 20px 'Poppins', sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillStyle = value ? "#fff" : "#888";
+        ctx.fillText(value ? value : "", x + w / 2, y + h / 2);
+      }
+
+      function draw_sparse_table(sparseArr, right = true, highlightIdx = -1) {
+        // Draws sparse matrix table (right or left)
+        let x = right ? ctx.canvas.width / 2 : 0;
+        let y = ctx.canvas.height;
+        let p_x = ctx.canvas.width / 6;
+        let p_y = y / (max + 3);
+        let w = p_x - 24,
+          h = p_y - 18,
+          r = 12;
+
+        // Header
+        drawRoundRect(
+          ctx,
+          x + 0 * p_x + 12,
+          16,
+          w,
+          h,
+          r,
+          "#222",
+          "#4ade80",
+          true
+        );
+        drawRoundRect(
+          ctx,
+          x + 1 * p_x + 12,
+          16,
+          w,
+          h,
+          r,
+          "#222",
+          "#fbbf24",
+          true
+        );
+        drawRoundRect(
+          ctx,
+          x + 2 * p_x + 12,
+          16,
+          w,
+          h,
+          r,
+          "#222",
+          "#f43f5e",
+          true
+        );
+
+        ctx.font = "bold 18px 'Poppins', sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillStyle = "#4ade80";
+        ctx.fillText("Row", x + 0 * p_x + 12 + w / 2, 16 + h / 2);
+        ctx.fillStyle = "#fbbf24";
+        ctx.fillText("Col", x + 1 * p_x + 12 + w / 2, 16 + h / 2);
+        ctx.fillStyle = "#f43f5e";
+        ctx.fillText("Value", x + 2 * p_x + 12 + w / 2, 16 + h / 2);
+
+        // Size row
+        drawRoundRect(
+          ctx,
+          x + 0 * p_x + 12,
+          16 + p_y,
+          w,
+          h,
+          r,
+          "#222",
+          "#4ade80",
+          true
+        );
+        drawRoundRect(
+          ctx,
+          x + 1 * p_x + 12,
+          16 + p_y,
+          w,
+          h,
+          r,
+          "#222",
+          "#fbbf24",
+          true
+        );
+        drawRoundRect(
+          ctx,
+          x + 2 * p_x + 12,
+          16 + p_y,
+          w,
+          h,
+          r,
+          "#222",
+          "#f43f5e",
+          true
+        );
+
+        ctx.font = "bold 18px 'Poppins', sans-serif";
+        ctx.fillStyle = "#4ade80";
+        ctx.fillText(size, x + 0 * p_x + 12 + w / 2, 16 + p_y + h / 2);
+        ctx.fillStyle = "#fbbf24";
+        ctx.fillText(size, x + 1 * p_x + 12 + w / 2, 16 + p_y + h / 2);
+        ctx.fillStyle = "#f43f5e";
+        ctx.fillText(max, x + 2 * p_x + 12 + w / 2, 16 + p_y + h / 2);
+
+        // Data rows
+        for (let k = 0; k < sparseArr.length; k++) {
+          let baseY = 16 + (k + 2) * p_y;
+          let highlight = k === highlightIdx;
+          let fillRow = highlight ? "rgba(74,222,128,0.12)" : "#222";
+          let fillCol = highlight ? "rgba(251,191,36,0.12)" : "#222";
+          let fillVal = highlight ? "rgba(244,63,94,0.12)" : "#222";
+          drawRoundRect(
+            ctx,
+            x + 0 * p_x + 12,
+            baseY,
+            w,
+            h,
+            r,
+            fillRow,
+            "#4ade80",
+            true
+          );
+          drawRoundRect(
+            ctx,
+            x + 1 * p_x + 12,
+            baseY,
+            w,
+            h,
+            r,
+            fillCol,
+            "#fbbf24",
+            true
+          );
+          drawRoundRect(
+            ctx,
+            x + 2 * p_x + 12,
+            baseY,
+            w,
+            h,
+            r,
+            fillVal,
+            "#f43f5e",
+            true
+          );
+
+          ctx.font = "bold 18px 'Poppins', sans-serif";
+          ctx.fillStyle = "#4ade80";
+          ctx.fillText(
+            sparseArr[k][0],
+            x + 0 * p_x + 12 + w / 2,
+            baseY + h / 2
+          );
+          ctx.fillStyle = "#fbbf24";
+          ctx.fillText(
+            sparseArr[k][1],
+            x + 1 * p_x + 12 + w / 2,
+            baseY + h / 2
+          );
+          ctx.fillStyle = "#f43f5e";
+          ctx.fillText(
+            sparseArr[k][2],
+            x + 2 * p_x + 12 + w / 2,
+            baseY + h / 2
+          );
+        }
+        // Label
+        ctx.font = "bold 22px 'Poppins', sans-serif";
+        ctx.fillStyle = "#fff";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        let label = right ? "Sparse Matrix" : "Transpose Sparse";
+        ctx.fillText(
+          label,
+          x + (ctx.canvas.width / 6) * 1.5,
+          ctx.canvas.height - 30
+        );
+      }
+
+      async function animate_sparse_right() {
+        // Animate sparse matrix creation (right side) while keeping original matrix (left)
+        ctx.clearRect(
+          ctx.canvas.width / 2,
+          0,
+          ctx.canvas.width / 2,
+          ctx.canvas.height
+        );
+        draw_matrix_left();
+        // Animate row by row
+        for (let k = 0; k <= sp.length; k++) {
+          draw_sparse_table(sp.slice(0, k), true, k - 1);
+          await sleep(time_delay);
+        }
+      }
+
+      async function animate_transpose_left() {
+        // Build transpose sparse: [col, row, value], sorted by col then row
+        let transposeSp = [];
+        for (let j = 0; j < size; j++) {
+          for (let k = 0; k < sp.length; k++) {
+            if (sp[k][1] === j) {
+              transposeSp.push([sp[k][1], sp[k][0], sp[k][2]]);
+            }
+          }
+        }
+        // Animate row by row on left, right side sparse stays
+        for (let k = 0; k <= transposeSp.length; k++) {
+          ctx.clearRect(0, 0, ctx.canvas.width / 2, ctx.canvas.height);
+          draw_sparse_table(transposeSp.slice(0, k), false, k - 1);
+          // Redraw right side sparse matrix
+          draw_sparse_table(sp, true);
+          await sleep(time_delay);
+        }
+      }
+
+      function sleep(ms) {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+      }
+
+      window.onload = init;
+    </script>
+  </body>
+</html>

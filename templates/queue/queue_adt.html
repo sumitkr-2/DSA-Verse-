@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Queue - DSA Verse</title>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --primary-color: #4ade80;
+        --dark-bg: #111827;
+        --light-dark-bg: #1f2937;
+        --card-bg: rgba(31, 41, 55, 0.5);
+        --text-color: #e5e7eb;
+        --border-color: rgba(255, 255, 255, 0.1);
+        --front: #60a5fa;
+        --rear: #bbf7d0;
+      }
+      html,
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      .back-link {
+        text-decoration: none;
+      }
+      .heading {
+        font-weight: 700;
+        font-size: clamp(2.5rem, 5vw, 3.5rem);
+        color: #fff;
+        text-shadow: 0 0 15px rgba(74, 222, 128, 0.6);
+        transition: transform 0.3s ease;
+      }
+      .back-link:hover .heading {
+        transform: scale(1.05);
+      }
+      body {
+        font-family: "Poppins", sans-serif;
+        background: linear-gradient(
+          135deg,
+          var(--light-dark-bg),
+          var(--dark-bg)
+        );
+        color: var(--text-color);
+        min-height: 100vh;
+        text-align: center;
+        overflow-x: hidden;
+      }
+      p,
+      p:nth-child(1) {
+        padding: 24px 0 16px 0;
+        text-align: center;
+        font-family: "Poppins", sans-serif;
+        font-weight: 700;
+        font-size: clamp(2rem, 4vw, 2.7rem);
+        text-transform: uppercase;
+        color: #fff;
+        text-shadow: 0 0 15px rgba(74, 222, 128, 0.6),
+          0 0 25px rgba(74, 222, 128, 0.4);
+        letter-spacing: 2px;
+        animation: float 3s ease-in-out infinite;
+      }
+      @keyframes float {
+        0% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-10px);
+        }
+        100% {
+          transform: translateY(0);
+        }
+      }
+      .canvas-container {
+        background: var(--card-bg);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        margin: 32px auto 24px auto;
+        width: 100%;
+        max-width: 1100px;
+        padding: 1.5rem 0.5rem 2rem 0.5rem;
+        position: relative;
+      }
+      .grid {
+        background: transparent;
+        border-radius: 8px;
+        display: block;
+        margin: 0 auto;
+        width: 1000px;
+        height: 400px;
+        max-width: 100%;
+        max-height: 400px;
+      }
+      .queue__controllers {
+        max-width: 700px;
+        margin: 0 auto;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 2.5rem;
+        margin-bottom: 1.2rem;
+        margin-top: 1rem;
+      }
+      .dequeue,
+      .enqueue {
+        background-color: var(--primary-color);
+        color: var(--dark-bg);
+        border: none;
+        padding: 0 36px;
+        border-radius: 50px;
+        font-family: "Poppins", sans-serif;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(74, 222, 128, 0.2);
+        height: 44px;
+        letter-spacing: 1px;
+      }
+      .dequeue:hover,
+      .enqueue:hover {
+        transform: scale(1.05) translateY(-2px);
+        box-shadow: 0 8px 25px rgba(74, 222, 128, 0.4);
+      }
+      .dequeue:disabled,
+      .enqueue:disabled {
+        opacity: 0.65;
+        cursor: not-allowed;
+      }
+      .color__scheme {
+        min-width: 110px;
+        margin-right: 16px;
+      }
+      .color__scheme > span {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 2px;
+      }
+      .color__scheme > span > span:first-child {
+        display: inline-block;
+        width: 22px;
+        height: 22px;
+        border-radius: 6px;
+        margin-right: 6px;
+      }
+      .color__scheme > span.front > span:first-child {
+        background: var(--front);
+        border: 2px solid #fff;
+      }
+      .color__scheme > span.rear > span:first-child {
+        background: var(--rear);
+        border: 2px solid #fff;
+      }
+      .color__scheme > span > span:last-child {
+        color: #b3b3b3;
+        font-weight: 600;
+        font-size: 1rem;
+        font-family: "Poppins", sans-serif;
+      }
+      @media (max-width: 800px) {
+        .canvas-container {
+          padding: 0.7rem 0.2rem 1.2rem 0.2rem;
+        }
+        .queue__controllers {
+          flex-direction: column;
+          gap: 0.7rem;
+        }
+        .grid {
+          width: 98vw !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <a href="../queue.html" class="back-link"><p>Queue</p></a>
+    <div class="canvas-container">
+      <canvas class="grid" width="1000" height="400"></canvas>
+    </div>
+    <div class="queue__controllers">
+      <span class="color__scheme">
+        <span class="front">
+          <span></span>
+          <span>FRONT</span>
+        </span>
+        <span class="rear">
+          <span></span>
+          <span>REAR</span>
+        </span>
+      </span>
+      <button class="enqueue">Enqueue</button>
+      <button class="dequeue">Dequeue</button>
+    </div>
+    <script>
+      // MAIN
+      let arr = [];
+      let queue = [];
+      const max = 100;
+      const time_delay = 500;
+      const canvas = document.querySelector("canvas");
+      const max_width = canvas.width;
+      const max_height = canvas.height;
+      const queue_width = 200;
+      const ctx = canvas.getContext("2d");
+      const size = 7;
+
+      // Dynamic box size for array (fit 10 boxes with spacing)
+      const arrBoxCount = size;
+      const arrBoxSpacing = 16;
+      const arrBoxWidth = Math.floor(
+        (max_width - queue_width - (arrBoxCount + 1) * arrBoxSpacing) /
+          arrBoxCount
+      );
+      const arrBoxHeight = 48;
+
+      // Dynamic box size for queue
+      const queueBoxHeight = 36;
+      const queueBoxSpacing = 12;
+      const queueBoxWidth = queue_width - 38;
+
+      function randomize_an_array() {
+        arr = [];
+        queue = [];
+        for (let i = 0; i < size; i++) {
+          arr.push(Math.floor(Math.random() * max + 1));
+        }
+      }
+
+      function drawGlassyRect(x, y, w, h, fill, stroke, r = 11, shadow = true) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.lineTo(x + w - r, y);
+        ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+        ctx.lineTo(x + w, y + h - r);
+        ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+        ctx.lineTo(x + r, y + h);
+        ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+        ctx.lineTo(x, y + r);
+        ctx.quadraticCurveTo(x, y, x + r, y);
+        ctx.closePath();
+        if (shadow) {
+          ctx.shadowColor = "#4ade80";
+          ctx.shadowBlur = 10;
+        }
+        ctx.fillStyle = fill;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        if (stroke) {
+          ctx.strokeStyle = stroke;
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      function create_queue() {
+        drawGlassyRect(
+          max_width - queue_width,
+          30,
+          queue_width,
+          max_height - 60,
+          "#222",
+          "#4ade80",
+          20,
+          true
+        );
+        ctx.font = "bold 18px Poppins, sans-serif";
+        ctx.fillStyle = "#fff";
+        ctx.textAlign = "center";
+        ctx.fillText("QUEUE", max_width - queue_width / 2, max_height - 15);
+      }
+
+      function clear(x1 = 0, y1 = 0, width = max_width, height = max_height) {
+        ctx.clearRect(x1, y1, width, height);
+      }
+
+      function animate() {
+        clear(0, 0, max_width, max_height);
+        create_queue();
+
+        // Draw array as horizontal blocks (centered vertically)
+        let arrStartX = arrBoxSpacing;
+        let arrY = max_height / 2 - arrBoxHeight / 2 - 50;
+        arr.forEach((e, i) => {
+          let x = arrStartX + i * (arrBoxWidth + arrBoxSpacing);
+          let fill = "#222";
+          let stroke = "#4ade80";
+          drawGlassyRect(
+            x,
+            arrY,
+            arrBoxWidth,
+            arrBoxHeight,
+            fill,
+            stroke,
+            12,
+            true
+          );
+          ctx.font = "bold 22px Poppins, sans-serif";
+          ctx.fillStyle = "#fff";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(
+            `${e}`,
+            x + arrBoxWidth / 2,
+            arrY + arrBoxHeight / 2 + 1
+          );
+        });
+
+        // Draw queue as vertical blocks
+        let queueStartY = max_height - 65;
+        queue.forEach((e, i) => {
+          let y = queueStartY - i * (queueBoxHeight + queueBoxSpacing);
+          let x = max_width - queue_width + 19;
+          let fill, stroke;
+          if (queue.length === 1) {
+            fill = "#60a5fa"; // FRONT/REAR same
+            stroke = "#fff";
+          } else if (i === 0) {
+            fill = "#60a5fa"; // FRONT
+            stroke = "#fff";
+          } else if (i === queue.length - 1) {
+            fill = "#bbf7d0"; // REAR
+            stroke = "#fff";
+          } else {
+            fill = "#fff";
+            stroke = "#4ade80";
+          }
+          drawGlassyRect(
+            x,
+            y,
+            queueBoxWidth,
+            queueBoxHeight,
+            fill,
+            stroke,
+            10,
+            true
+          );
+          ctx.font = "bold 20px Poppins, sans-serif";
+          ctx.fillStyle = "#222";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(
+            `${e}`,
+            x + queueBoxWidth / 2,
+            y + queueBoxHeight / 2 + 1
+          );
+        });
+      }
+
+      function enqueue() {
+        if (queue.length === size) {
+          alert("Queue Full");
+        } else if (arr.length === 0) {
+          alert("No Element is present to enqueue");
+          window.location.reload();
+        } else {
+          queue.push(arr.shift());
+          animate();
+        }
+      }
+
+      function dequeue() {
+        if (queue.length === 0) {
+          if (arr.length === 0) {
+            alert("Empty queue can't dequeue further");
+            window.location.reload();
+          } else {
+            alert("Empty queue, please enqueue something to dequeue");
+          }
+        } else {
+          queue.splice(0, 1);
+          animate();
+        }
+      }
+
+      function init() {
+        randomize_an_array();
+        animate();
+        document.querySelector(".enqueue").addEventListener("click", enqueue);
+        document.querySelector(".dequeue").addEventListener("click", dequeue);
+      }
+
+      window.onload = init;
+    </script>
+  </body>
+</html>

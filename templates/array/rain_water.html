@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Rain Water Trapping - DSA Verse</title>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      :root {
+        --primary-color: #4ade80;
+        --dark-bg: #111827;
+        --light-dark-bg: #1f2937;
+        --card-bg: rgba(31, 41, 55, 0.5);
+        --text-color: #e5e7eb;
+        --border-color: rgba(255, 255, 255, 0.1);
+        --water-color: #3b82f6; /* Blue for water */
+        --bar-color: #4b5563; /* Neutral gray for bars */
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        font-family: "Poppins", sans-serif;
+        background: linear-gradient(
+          135deg,
+          var(--light-dark-bg),
+          var(--dark-bg)
+        );
+        color: var(--text-color);
+        min-height: 100vh;
+        overflow: hidden;
+        text-align: center;
+      }
+
+      #main-content {
+        padding: 3rem 1.5rem;
+        max-width: 1050px;
+        margin: 0 auto;
+      }
+      .page-header {
+        text-align: center;
+        margin-bottom: 2.5rem;
+      }
+      .back-link {
+        text-decoration: none;
+      }
+      .heading {
+        font-weight: 700;
+        font-size: clamp(2.5rem, 5vw, 3.5rem);
+        color: #fff;
+        text-shadow: 0 0 15px rgba(74, 222, 128, 0.6);
+        transition: transform 0.3s ease;
+      }
+      .back-link:hover .heading {
+        transform: scale(1.05);
+      }
+
+      .canvas-container {
+        background: var(--card-bg);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 1rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        margin-bottom: 2rem;
+      }
+      .grid {
+        width: 100%;
+        height: auto;
+        border-radius: 8px;
+      }
+
+      .controls-panel {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+      }
+      .info-display {
+        background: var(--dark-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+        font-weight: 600;
+      }
+      .info-display .value {
+        color: var(--primary-color);
+        margin-left: 0.5rem;
+      }
+      .control-btn {
+        background-color: var(--primary-color);
+        color: var(--dark-bg);
+        border: none;
+        padding: 0.75rem 2.5rem;
+        border-radius: 50px;
+        font-family: "Poppins", sans-serif;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+      .control-btn:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 20px rgba(74, 222, 128, 0.3);
+      }
+      .control-btn:disabled {
+        background-color: #4b5563;
+        cursor: not-allowed;
+      }
+
+      /* Legend */
+      .legend {
+        display: flex;
+        justify-content: center;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+      }
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .legend-color {
+        width: 20px;
+        height: 20px;
+        border-radius: 4px;
+        border: 1px solid var(--border-color);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="main-content">
+      <div class="page-header">
+        <a href="../datastructures.html" class="back-link"
+          ><h1 class="heading">Rain Water Trapping</h1></a
+        >
+      </div>
+      <div class="canvas-container">
+        <canvas class="grid" width="1000" height="500"></canvas>
+      </div>
+      <div class="controls-panel">
+        <div class="info-display">
+          Water Trapped: <span class="value" id="water-count">0</span>
+        </div>
+        <button class="control-btn visualise">Visualize</button>
+      </div>
+      <div class="legend">
+        <div class="legend-item">
+          <div
+            class="legend-color"
+            style="background-color: var(--bar-color)"
+          ></div>
+          <span>Building</span>
+        </div>
+        <div class="legend-item">
+          <div
+            class="legend-color"
+            style="background-color: var(--water-color)"
+          ></div>
+          <span>Trapped Water</span>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const ctx = document.querySelector("canvas").getContext("2d");
+      const size = 20;
+      let arr = [];
+      const time_delay = 200;
+      const max_height_val = 15; // Max height for a building for better visualization
+      let waterLevels = [];
+      let totalWater = 0;
+
+      function initialize_data() {
+        arr = [];
+        for (let i = 0; i < size; i++) {
+          arr.push(Math.floor(Math.random() * max_height_val) + 1);
+        }
+
+        // Pre-calculate water levels
+        const leftMax = Array(size).fill(0);
+        const rightMax = Array(size).fill(0);
+        waterLevels = Array(size).fill(0);
+        totalWater = 0;
+
+        leftMax[0] = arr[0];
+        for (let i = 1; i < size; i++) {
+          leftMax[i] = Math.max(leftMax[i - 1], arr[i]);
+        }
+
+        rightMax[size - 1] = arr[size - 1];
+        for (let i = size - 2; i >= 0; i--) {
+          rightMax[i] = Math.max(rightMax[i + 1], arr[i]);
+        }
+
+        for (let i = 0; i < size; i++) {
+          const water = Math.min(leftMax[i], rightMax[i]) - arr[i];
+          if (water > 0) {
+            waterLevels[i] = water;
+            totalWater += water;
+          }
+        }
+      }
+
+      function renderHistogram(filledWater = []) {
+        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        const theme = {
+          bar: getComputedStyle(document.documentElement)
+            .getPropertyValue("--bar-color")
+            .trim(),
+          water: getComputedStyle(document.documentElement)
+            .getPropertyValue("--water-color")
+            .trim(),
+        };
+        const barWidth = ctx.canvas.width / size;
+        const unitHeight = ctx.canvas.height / (max_height_val + 2); // Add padding at the top
+
+        for (let i = 0; i < size; i++) {
+          // Draw building
+          const barHeight = arr[i] * unitHeight;
+          const x = i * barWidth;
+          const y = ctx.canvas.height - barHeight;
+          ctx.fillStyle = theme.bar;
+          ctx.fillRect(x, y, barWidth - 2, barHeight);
+
+          // Draw filled water
+          if (filledWater[i] > 0) {
+            const waterHeight = filledWater[i] * unitHeight;
+            const waterY = ctx.canvas.height - barHeight - waterHeight;
+            ctx.fillStyle = theme.water;
+            ctx.globalAlpha = 0.8; // Make water slightly transparent
+            ctx.fillRect(x, waterY, barWidth - 2, waterHeight);
+            ctx.globalAlpha = 1.0;
+          }
+        }
+      }
+
+      async function visualize() {
+        const button = document.querySelector(".visualise");
+        button.disabled = true;
+
+        const waterCountEl = document.getElementById("water-count");
+        let currentFilledWater = Array(size).fill(0);
+        let animatedWaterCount = 0;
+
+        for (let i = 0; i < size; i++) {
+          if (waterLevels[i] > 0) {
+            currentFilledWater[i] = waterLevels[i];
+            animatedWaterCount += waterLevels[i];
+
+            renderHistogram(currentFilledWater);
+            waterCountEl.textContent = animatedWaterCount;
+
+            await sleep(time_delay);
+          }
+        }
+
+        // Ensure final count is accurate
+        waterCountEl.textContent = totalWater;
+      }
+
+      function sleep(ms) {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+      }
+
+      function init() {
+        initialize_data();
+        renderHistogram();
+        document
+          .querySelector(".visualise")
+          .addEventListener("click", visualize);
+      }
+
+      init();
+    </script>
+  </body>
+</html>

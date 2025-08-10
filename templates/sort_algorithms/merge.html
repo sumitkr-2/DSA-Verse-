@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Merge Sort - DSA Verse</title>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Roboto+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --primary-color: #4ade80;
+        --dark-bg: #111827;
+        --light-dark-bg: #1f2937;
+        --card-bg: rgba(31, 41, 55, 0.5);
+        --text-color: #e5e7eb;
+        --border-color: rgba(255, 255, 255, 0.1);
+        --compare-color: #facc15;
+        --bar-color: #4b5563;
+        --merge-color: #60a5fa;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        font-family: "Poppins", sans-serif;
+        background: linear-gradient(
+          135deg,
+          var(--light-dark-bg),
+          var(--dark-bg)
+        );
+        color: var(--text-color);
+        min-height: 100vh;
+        overflow: hidden;
+        text-align: center;
+      }
+      #main-content {
+        padding: 3rem 1.5rem;
+        max-width: 1050px;
+        margin: 0 auto;
+      }
+      .page-header {
+        text-align: center;
+        margin-bottom: 2.5rem;
+      }
+      .back-link {
+        text-decoration: none;
+      }
+      .heading {
+        font-weight: 700;
+        font-size: clamp(2.5rem, 5vw, 3.5rem);
+        color: #fff;
+        text-shadow: 0 0 15px rgba(74, 222, 128, 0.6);
+        transition: transform 0.3s ease;
+      }
+      .back-link:hover .heading {
+        transform: scale(1.05);
+      }
+      .canvas-container {
+        background: var(--card-bg);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 1rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        margin-bottom: 2rem;
+      }
+      .grid {
+        width: 100%;
+        height: auto;
+        border-radius: 8px;
+      }
+      .controls-panel {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+      }
+      .control-btn {
+        background-color: var(--primary-color);
+        color: var(--dark-bg);
+        border: none;
+        padding: 0.75rem 2rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+      .control-btn#reset-btn {
+        background-color: var(--card-bg);
+        color: var(--text-color);
+        border: 1px solid var(--border-color);
+      }
+      .control-btn:hover {
+        transform: scale(1.05);
+      }
+      .control-btn:disabled {
+        background-color: #4b5563;
+        cursor: not-allowed;
+      }
+      .legend {
+        display: flex;
+        justify-content: center;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+      }
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .legend-color {
+        width: 20px;
+        height: 20px;
+        border-radius: 4px;
+        border: 1px solid var(--border-color);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="main-content">
+      <div class="page-header">
+        <a href="../sort.html" class="back-link"
+          ><h1 class="heading">Merge Sort</h1></a
+        >
+      </div>
+      <div class="canvas-container">
+        <canvas class="grid" width="1000" height="300"></canvas>
+      </div>
+      <div class="controls-panel">
+        <button class="control-btn" id="visualize-btn">Sort</button>
+        <button class="control-btn" id="reset-btn">Reset</button>
+      </div>
+      <div class="legend">
+        <div class="legend-item">
+          <div
+            class="legend-color"
+            style="background-color: var(--bar-color)"
+          ></div>
+          <span>Array Bar</span>
+        </div>
+        <div class="legend-item">
+          <div
+            class="legend-color"
+            style="background-color: var(--merge-color)"
+          ></div>
+          <span>Merging</span>
+        </div>
+      </div>
+    </div>
+    <script>
+      let ctx = document.querySelector("canvas").getContext("2d");
+      let size = 40;
+      let arr = [];
+      let max = 50;
+      let time_delay = 200;
+
+      function initialize_array() {
+        let min = 10;
+        arr = [];
+        for (let i = 0; i < size; i++) {
+          let p = Math.floor(Math.random() * (max - min) + min);
+          arr.push(p);
+        }
+      }
+
+      function render(mergeRange = null) {
+        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        let pw = ctx.canvas.width / size;
+        for (let i = 0; i < size; i++) {
+          ctx.beginPath();
+          let barColor = getComputedStyle(
+            document.documentElement
+          ).getPropertyValue("--bar-color");
+          if (mergeRange && i >= mergeRange[0] && i <= mergeRange[1]) {
+            barColor = getComputedStyle(
+              document.documentElement
+            ).getPropertyValue("--merge-color");
+          }
+          ctx.fillStyle = barColor;
+          ctx.fillRect(
+            i * pw,
+            ctx.canvas.height - arr[i] * (ctx.canvas.height / max),
+            pw - 2,
+            arr[i] * (ctx.canvas.height / max)
+          );
+          ctx.strokeStyle = "#222";
+          ctx.strokeRect(
+            i * pw,
+            ctx.canvas.height - arr[i] * (ctx.canvas.height / max),
+            pw - 2,
+            arr[i] * (ctx.canvas.height / max)
+          );
+          ctx.closePath();
+        }
+      }
+
+      function init() {
+        initialize_array();
+        render();
+        add_listeners();
+      }
+
+      function add_listeners() {
+        document.getElementById("visualize-btn").onclick = async () => {
+          document.getElementById("visualize-btn").disabled = true;
+          document.getElementById("reset-btn").disabled = true;
+          await sort(0, size - 1);
+          render();
+          document.getElementById("visualize-btn").disabled = false;
+          document.getElementById("reset-btn").disabled = false;
+        };
+        document.getElementById("reset-btn").onclick = () => {
+          document.getElementById("visualize-btn").disabled = false;
+          init();
+        };
+      }
+
+      async function sort(low, high) {
+        if (low >= high) return;
+        let mid = Math.floor((low + high) / 2);
+        await sort(low, mid);
+        await sort(mid + 1, high);
+        await merge(low, mid, high);
+      }
+
+      async function merge(low, mid, high) {
+        let temp = [];
+        let i = low,
+          j = mid + 1,
+          k = 0;
+        render([low, high]);
+        await sleep(time_delay);
+
+        while (i <= mid && j <= high) {
+          if (arr[i] <= arr[j]) {
+            temp[k++] = arr[i++];
+          } else {
+            temp[k++] = arr[j++];
+          }
+          render([low, high]);
+          await sleep(time_delay);
+        }
+        while (i <= mid) {
+          temp[k++] = arr[i++];
+          render([low, high]);
+          await sleep(time_delay);
+        }
+        while (j <= high) {
+          temp[k++] = arr[j++];
+          render([low, high]);
+          await sleep(time_delay);
+        }
+        for (let t = 0; t < temp.length; t++) {
+          arr[low + t] = temp[t];
+          render([low, high]);
+          await sleep(time_delay);
+        }
+      }
+
+      function sleep(ms) {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+      }
+
+      init();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>P, NP, NP-Hard & NP-Complete - DSA Verse</title>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      /* --- Global Styles & Resets --- */
+      :root {
+        --primary-color: #4ade80;
+        --dark-bg: #111827;
+        --light-dark-bg: #1f2937;
+        --card-bg: rgba(31, 41, 55, 0.5);
+        --text-color: #d1d5db;
+        --heading-color: #e5e7eb;
+        --border-color: rgba(255, 255, 255, 0.1);
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        font-family: "Poppins", sans-serif;
+        background: linear-gradient(
+          135deg,
+          var(--light-dark-bg),
+          var(--dark-bg)
+        );
+        color: var(--text-color);
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
+
+      /* --- Custom Scrollbar --- */
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: var(--dark-bg);
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--primary-color);
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #36a166;
+      }
+
+      /* --- Main Content Layout --- */
+      #main-content {
+        padding: 3rem 1.5rem;
+        max-width: 900px;
+        margin: 0 auto;
+      }
+
+      /* --- Page Header with Back Link --- */
+      .page-header {
+        text-align: center;
+        margin-bottom: 2.5rem;
+      }
+      .back-link {
+        text-decoration: none;
+      }
+      .heading {
+        font-weight: 700;
+        font-size: clamp(1.8rem, 5vw, 3rem);
+        color: #fff;
+        text-shadow: 0 0 15px rgba(74, 222, 128, 0.6);
+        display: inline-block;
+        transition: transform 0.3s ease;
+      }
+      .back-link:hover .heading {
+        transform: scale(1.05);
+      }
+
+      /* --- Article Container (Glassmorphism) --- */
+      .article-container {
+        background: var(--card-bg);
+        backdrop-filter: blur(12px);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: clamp(1.5rem, 5vw, 3rem);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      }
+
+      .topic-section {
+        margin-bottom: 3rem;
+      }
+      .topic-section:last-child {
+        margin-bottom: 0;
+      }
+
+      .section-heading {
+        font-size: clamp(1.5rem, 4vw, 2.25rem);
+        font-weight: 600;
+        color: var(--primary-color);
+        padding-bottom: 0.5rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+      }
+
+      p.intro-text {
+        font-size: 1.2rem;
+        font-weight: 500;
+        color: var(--heading-color);
+        margin-bottom: 2rem;
+        text-align: center;
+      }
+      p.doc {
+        font-size: 1.1rem;
+        line-height: 1.8;
+        margin-bottom: 1.5rem;
+        text-align: justify;
+      }
+      p.doc b {
+        color: var(--primary-color);
+        font-weight: 600;
+      }
+
+      .article-image {
+        max-width: 100%;
+        height: auto;
+        border-radius: 12px;
+        margin: 1.5rem auto;
+        display: block;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="main-content">
+      <div class="page-header">
+        <a href="../algorithms.html" class="back-link">
+          <h1 class="heading">P, NP, NP-Hard & NP-Complete</h1>
+        </a>
+      </div>
+
+      <div class="article-container">
+        <p class="intro-text">
+          Let's understand the classes into which any computational problem can
+          be classified.
+        </p>
+        <img
+          class="article-image"
+          alt="Venn diagram of complexity classes"
+          src="../images/np_hard.jpg"
+        />
+
+        <section class="topic-section">
+          <h2 class="section-heading">1. P (Polynomial) Problems</h2>
+          <img
+            src="../images/polynomial.png"
+            alt="Graph showing polynomial time"
+            class="article-image"
+            style="max-width: 350px"
+          />
+          <p class="doc">
+            <b>P</b> problems are those that can be solved by an algorithm in a
+            polynomial amount of time. This means the time complexity is a
+            polynomial function of the input size, such as
+            <b>O(1), O(n), O(n log n), or O(n²)</b>. These problems are
+            generally considered 'easy' or 'efficiently solvable' by computers,
+            as their run times don't grow excessively large with bigger inputs.
+          </p>
+        </section>
+
+        <section class="topic-section">
+          <h2 class="section-heading">
+            2. NP (Non-deterministic Polynomial) Problems
+          </h2>
+          <img
+            src="../images/np.png"
+            alt="Sudoku puzzle"
+            class="article-image"
+            style="max-width: 350px"
+          />
+          <p class="doc">
+            <b>NP</b> problems are a class of problems for which a given
+            solution can be <b>verified</b> in polynomial time. It does not mean
+            they are "non-polynomial" to solve. While many NP problems have no
+            known polynomial-time solution (e.g., O(n!) or O(2ⁿ)), the key is
+            that checking a potential answer is fast.
+          </p>
+          <p class="doc">
+            A classic example is a <b>Sudoku puzzle</b>. Finding the solution
+            from scratch can be very time-consuming, requiring extensive trial
+            and error (backtracking). However, if someone gives you a completed
+            Sudoku grid, you can quickly verify if it's correct by checking each
+            row, column, and 3x3 box for duplicates. This verification process
+            has a polynomial run-time.
+          </p>
+          <p class="doc">
+            In short: NP problems are <b>easy to check</b>, even if they are
+            <b>hard to solve</b>. A major open question in computer science is
+            whether P = NP, i.e., whether every problem that can be quickly
+            verified can also be quickly solved.
+          </p>
+        </section>
+
+        <section class="topic-section">
+          <h2 class="section-heading">3. NP-Hard Problems</h2>
+          <img
+            src="../images/np__hard.png"
+            alt="Illustration for NP-Hard"
+            class="article-image"
+            style="max-width: 350px"
+          />
+          <p class="doc">
+            A problem is classified as <b>NP-Hard</b> if it is
+            <b>"at least as hard as the hardest problems in NP"</b>. More
+            formally, a problem H is NP-Hard if every problem L in NP can be
+            reduced to H in polynomial time. This means if you could find a
+            magical, fast algorithm for an NP-Hard problem, you could use it to
+            solve every single NP problem quickly.
+          </p>
+          <p class="doc">
+            An NP-Hard problem does not have to be in NP itself (meaning, it
+            might not be easy to verify a solution).
+          </p>
+        </section>
+
+        <section class="topic-section">
+          <h2 class="section-heading">4. NP-Complete Problems</h2>
+          <img
+            src="../images/np_complete.png"
+            alt="Illustration for NP-Complete"
+            class="article-image"
+            style="max-width: 350px"
+          />
+          <p class="doc">
+            <b>NP-Complete</b> problems are the problems that are both in
+            <b>NP</b> and are <b>NP-Hard</b>. These are, in a sense, the
+            "hardest" problems in the NP class.
+          </p>
+          <p class="doc">
+            To be NP-Complete, a problem must satisfy two conditions:
+          </p>
+          <ol style="padding-left: 2rem; font-size: 1.1rem; line-height: 1.8">
+            <li style="margin-bottom: 1rem">
+              It must be in the NP class (a given solution can be verified
+              quickly).
+            </li>
+            <li>
+              It must be NP-Hard (every other NP problem can be reduced to it in
+              polynomial time).
+            </li>
+          </ol>
+          <p class="doc">
+            Examples of NP-Complete problems include the Traveling Salesman
+            Problem and the Boolean Satisfiability Problem (SAT).
+          </p>
+        </section>
+
+        <section class="topic-section">
+          <h2 class="section-heading">Visual Summary</h2>
+          <img
+            class="article-image"
+            alt="Venn diagram showing relationship between P, NP, NP-Hard, and NP-Complete"
+            src="../images/diff.png"
+          />
+        </section>
+      </div>
+    </div>
+  </body>
+</html>

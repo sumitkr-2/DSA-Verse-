@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Factorial - DSA Verse</title>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --primary-color: #4ade80;
+        --dark-bg: #111827;
+        --light-dark-bg: #1f2937;
+        --card-bg: rgba(31, 41, 55, 0.5);
+        --text-color: #e5e7eb;
+        --border-color: rgba(255, 255, 255, 0.1);
+        --danger: #f43f5e;
+        --yellow: #fbbf24;
+      }
+      html,
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: "Poppins", sans-serif;
+        background: linear-gradient(
+          135deg,
+          var(--light-dark-bg),
+          var(--dark-bg)
+        );
+        color: var(--text-color);
+        min-height: 100vh;
+        text-align: center;
+        overflow-x: hidden;
+      }
+      p:nth-child(1) {
+        padding: 24px 0 16px 0;
+        text-align: center;
+        font-family: "Poppins", sans-serif;
+        font-weight: 700;
+        font-size: clamp(2rem, 4vw, 2.7rem);
+        text-transform: uppercase;
+        color: #fff;
+        text-shadow: 0 0 15px rgba(74, 222, 128, 0.6),
+          0 0 25px rgba(74, 222, 128, 0.4);
+        letter-spacing: 2px;
+        animation: float 3s ease-in-out infinite;
+      }
+      @keyframes float {
+        0% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-10px);
+        }
+        100% {
+          transform: translateY(0);
+        }
+      }
+      .canvas-container {
+        background: var(--card-bg);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        margin: 32px auto 24px auto;
+        width: 100%;
+        max-width: 1050px;
+        padding: 1.5rem 0.5rem 2rem 0.5rem;
+      }
+      .grid {
+        background: transparent;
+        border-radius: 8px;
+        display: block;
+        margin: 0 auto;
+        width: 1000px;
+        height: 550px;
+        max-width: 100%;
+        max-height: 550px;
+      }
+      .controls-panel {
+        margin-top: 32px;
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+      }
+      button.controller {
+        background-color: var(--primary-color);
+        color: var(--dark-bg);
+        border: none;
+        padding: 0 44px;
+        border-radius: 50px;
+        font-family: "Poppins", sans-serif;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(74, 222, 128, 0.2);
+        height: 44px;
+        letter-spacing: 1px;
+        margin: 0 auto;
+        display: block;
+      }
+      button.controller:hover {
+        transform: scale(1.05) translateY(-2px);
+        box-shadow: 0 8px 25px rgba(74, 222, 128, 0.4);
+      }
+      button.controller:disabled {
+        opacity: 0.65;
+        cursor: not-allowed;
+      }
+      .back-link {
+        text-decoration: none;
+      }
+      .heading {
+        font-weight: 700;
+        font-size: clamp(2.5rem, 5vw, 3.5rem);
+        color: #fff;
+        text-shadow: 0 0 15px rgba(74, 222, 128, 0.6);
+        transition: transform 0.3s ease;
+      }
+      .back-link:hover .heading {
+        transform: scale(1.05);
+      }
+      @media (max-width: 800px) {
+        .canvas-container {
+          padding: 0.7rem 0.2rem 1.2rem 0.2rem;
+        }
+        .controls-panel {
+          flex-direction: column;
+          gap: 0.7rem;
+        }
+        button.controller {
+          width: 90%;
+          min-width: 120px;
+        }
+        .grid {
+          width: 98vw !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <a href="../recursion.html" class="back-link"><p>Factorial</p></a>
+    <div class="canvas-container">
+      <canvas class="grid" width="1000" height="550"></canvas>
+    </div>
+    <div class="controls-panel">
+      <button class="controller">Find Factorial</button>
+    </div>
+    <script>
+      // Helper: Draw rounded rectangle for glassy effect
+      function drawRoundRect(ctx, x, y, w, h, r, fill, stroke, shadow = false) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.lineTo(x + w - r, y);
+        ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+        ctx.lineTo(x + w, y + h - r);
+        ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+        ctx.lineTo(x + r, y + h);
+        ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+        ctx.lineTo(x, y + r);
+        ctx.quadraticCurveTo(x, y, x + r, y);
+        ctx.closePath();
+        if (shadow) {
+          ctx.shadowColor = "rgba(74,222,128,0.18)";
+          ctx.shadowBlur = 10;
+          ctx.shadowOffsetX = 0;
+          ctx.shadowOffsetY = 2;
+        }
+        if (fill) {
+          ctx.fillStyle = fill;
+          ctx.fill();
+        }
+        if (stroke) {
+          ctx.strokeStyle = stroke;
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      // Main
+      let ctx = document.querySelector("canvas").getContext("2d");
+      let n = Math.floor(Math.random() * 7 + 4); // Random n between 4 and 10
+      let rect = {
+        width: 240,
+        height: 54,
+      };
+      let time_delay = 700;
+
+      function show_initial() {
+        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        let x = ctx.canvas.width / 2 - rect.width / 2;
+        let y = ctx.canvas.height / 2 - rect.height / 2;
+        drawRoundRect(
+          ctx,
+          x,
+          y,
+          rect.width,
+          rect.height,
+          20,
+          "#222",
+          "#4ade80",
+          true
+        );
+        ctx.font = "bold 28px 'Poppins', sans-serif";
+        ctx.fillStyle = "#4ade80";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(`${n}!`, x + rect.width / 2, y + rect.height / 2);
+      }
+
+      async function simulate_factorial(calc = false) {
+        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        let gap = 22;
+        let baseY = 70;
+        let cards = [];
+        // Draw stack of glassy cards for n! to 1!
+        for (let i = n; i >= 1; i--) {
+          await sleep(time_delay).then(() => {
+            let x = ctx.canvas.width / 2 - rect.width / 2;
+            let y = baseY + (n - i) * (rect.height + gap);
+            drawRoundRect(
+              ctx,
+              x,
+              y,
+              rect.width,
+              rect.height,
+              18,
+              "#222",
+              "#4ade80",
+              true
+            );
+            ctx.font = "bold 22px 'Poppins', sans-serif";
+            ctx.fillStyle = "#4ade80";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(`${i}!`, x + rect.width / 2, y + rect.height / 2);
+            cards.push({ x, y });
+          });
+        }
+        if (calc) {
+          let m = 1;
+          for (let i = 1; i <= n; i++) {
+            await sleep(time_delay).then(() => {
+              let idx = n - i;
+              let { x, y } = cards[idx];
+              drawRoundRect(
+                ctx,
+                x,
+                y,
+                rect.width,
+                rect.height,
+                18,
+                "#fff",
+                "#fbbf24",
+                true
+              );
+              m *= i;
+              ctx.font = "bold 27px 'Poppins', sans-serif";
+              ctx.fillStyle = "#f43f5e";
+              ctx.fillText(m, x + rect.width / 2, y + rect.height / 2);
+            });
+            await sleep(time_delay).then(() => {
+              let idx = n - i;
+              let { x, y } = cards[idx];
+              drawRoundRect(
+                ctx,
+                x,
+                y,
+                rect.width,
+                rect.height,
+                18,
+                "#222",
+                "#4ade80",
+                true
+              );
+              ctx.font = "bold 22px 'Poppins', sans-serif";
+              ctx.fillStyle = "#4ade80";
+              ctx.fillText(
+                `${n - idx}!`,
+                x + rect.width / 2,
+                y + rect.height / 2
+              );
+            });
+          }
+          await sleep(time_delay + 400);
+          show_final_answer(m);
+        }
+      }
+
+      function show_final_answer(ans) {
+        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        let x = ctx.canvas.width / 2 - rect.width * 1.1;
+        let y = ctx.canvas.height / 2 - rect.height * 2;
+        drawRoundRect(
+          ctx,
+          x,
+          y,
+          rect.width * 2.2,
+          rect.height * 3.2,
+          28,
+          "#fff",
+          "#f43f5e",
+          true
+        );
+        ctx.font = "bold 45px 'Poppins', sans-serif";
+        ctx.fillStyle = "#f43f5e";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(
+          `${n}! = ${ans}`,
+          x + rect.width * 1.1,
+          y + rect.height * 1.6 + 8
+        );
+        setTimeout(() => {
+          window.location.reload();
+        }, 4000);
+      }
+
+      function sleep(ms) {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+      }
+
+      function init() {
+        show_initial();
+        document
+          .querySelector(".controller")
+          .addEventListener("click", async () => {
+            document.querySelector(".controller").disabled = true;
+            await simulate_factorial(true);
+          });
+      }
+
+      window.onload = init;
+    </script>
+  </body>
+</html>

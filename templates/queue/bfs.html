@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>BFS</title>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --primary-color: #4ade80;
+        --dark-bg: #111827;
+        --light-dark-bg: #1f2937;
+        --card-bg: rgba(31, 41, 55, 0.5);
+        --text-color: #e5e7eb;
+        --border-color: rgba(255, 255, 255, 0.1);
+        --danger: #f43f5e;
+        --yellow: #fbbf24;
+      }
+      html,
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: "Poppins", sans-serif;
+        background: linear-gradient(
+          135deg,
+          var(--light-dark-bg),
+          var(--dark-bg)
+        );
+        color: var(--text-color);
+        min-height: 100vh;
+        text-align: center;
+        overflow-x: hidden;
+      }
+      p,
+      p:nth-child(1) {
+        padding: 24px 0 16px 0;
+        text-align: center;
+        font-family: "Poppins", sans-serif;
+        font-weight: 700;
+        font-size: clamp(2rem, 4vw, 2.7rem);
+        text-transform: uppercase;
+        color: #fff;
+        text-shadow: 0 0 15px rgba(74, 222, 128, 0.6),
+          0 0 25px rgba(74, 222, 128, 0.4);
+        letter-spacing: 2px;
+        animation: float 3s ease-in-out infinite;
+      }
+      @keyframes float {
+        0% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-10px);
+        }
+        100% {
+          transform: translateY(0);
+        }
+      }
+      .canvas-container {
+        background: var(--card-bg);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        margin: 32px auto 24px auto;
+        width: 100%;
+        max-width: 1280px;
+        padding: 1.5rem 0.5rem 2rem 0.5rem;
+        position: relative;
+      }
+      .grid {
+        background: transparent;
+        border-radius: 8px;
+        display: block;
+        margin: 0 auto;
+        width: 1200px;
+        height: 500px;
+        max-width: 100%;
+        max-height: 600px;
+      }
+      .head__button {
+        background-color: var(--primary-color);
+        color: var(--dark-bg);
+        border: none;
+        padding: 0 36px;
+        border-radius: 50px;
+        font-family: "Poppins", sans-serif;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(74, 222, 128, 0.2);
+        height: 44px;
+        letter-spacing: 1px;
+        margin: 0 8px;
+        display: inline-block;
+      }
+      .head__button:hover {
+        transform: scale(1.05) translateY(-2px);
+        box-shadow: 0 8px 25px rgba(74, 222, 128, 0.4);
+      }
+      .head__button:disabled {
+        opacity: 0.65;
+        cursor: not-allowed;
+      }
+	  .back-link {
+        text-decoration: none;
+      }
+      .heading {
+        font-weight: 700;
+        font-size: clamp(2.5rem, 5vw, 3.5rem);
+        color: #fff;
+        text-shadow: 0 0 15px rgba(74, 222, 128, 0.6);
+        transition: transform 0.3s ease;
+      }
+      .back-link:hover .heading {
+        transform: scale(1.05);
+      }
+      @media (max-width: 900px) {
+        .canvas-container {
+          padding: 0.7rem 0.2rem 1.2rem 0.2rem;
+        }
+        .grid {
+          width: 98vw !important;
+        }
+        
+      }
+    </style>
+  </head>
+  <body>
+	<a href="../queue.html" class="back-link"><p>BFS Traversal</p></a>
+      <span>
+        <button class="head__button graph">Original Graph</button>
+        <button class="head__button bfs">BFS</button>
+      </span>
+    </p>
+    <div class="canvas-container">
+      <canvas class="grid" width="1200" height="600"></canvas>
+    </div>
+    <script>
+      // Main
+      let arr = ["a", "b", "c", "d", "e", "f"];
+      let each = [];
+      let size = arr.length;
+      let edge = [];
+      let bfs_edge = [];
+      let dimension = 38;
+      let rel = 18;
+      let ctx = document.querySelector("canvas").getContext("2d");
+      let time_delay = 900;
+      let dx = (ctx.canvas.width - 400) / size;
+      let dy = ctx.canvas.height / size;
+      let visited = [];
+      let t = [];
+
+      create_edges();
+      create_graph(edge);
+      init();
+
+      function init() {
+        document.querySelector(".bfs").addEventListener("click", () => {
+          document.querySelector(".bfs").disabled = true;
+          document.querySelector(".graph").disabled = true;
+          t = [];
+          visited = [];
+          for (let i = 0; i < size; i++) visited.push(false);
+          bfs_edge = [];
+          for (let i = 0; i < size; i++) {
+            let bfs_temp = [];
+            for (let j = 0; j < size; j++) bfs_temp.push(0);
+            bfs_edge.push(bfs_temp);
+          }
+          async function get() {
+            await bfs(0, visited);
+            await create_graph(bfs_edge, true);
+            for (let i = 0; i < t.length; i++) {
+              await sleep(time_delay / 1.5).then(() => {
+                createShell(i, arr[t[i]]);
+              });
+            }
+            document.querySelector(".bfs").disabled = false;
+            document.querySelector(".graph").disabled = false;
+          }
+          get();
+        });
+
+        document.querySelector(".graph").addEventListener("click", () => {
+          create_graph(edge, false);
+        });
+      }
+
+      async function bfs(x, visited) {
+        let s = [];
+        s.push(x);
+        visited[x] = true;
+        while (s.length != 0) {
+          x = s.shift();
+          t.push(x);
+          for (let j = 0; j < size; j++) {
+            if (!visited[j] && edge[x][j]) {
+              bfs_edge[x][j] = 1;
+              bfs_edge[j][x] = 1;
+              await sleep(time_delay).then(() => {
+                create_graph(bfs_edge, true, [x, j]);
+              });
+              s.push(j);
+              visited[j] = true;
+            }
+          }
+        }
+        await sleep(time_delay / 2);
+      }
+
+      function create_edges() {
+        let count = 0;
+        for (let i = 0; i < size; i++) {
+          let temp = [];
+          let bfs_temp = [];
+          for (let j = 0; j < size; j++) {
+            temp.push(0);
+            bfs_temp.push(0);
+          }
+          edge.push(temp);
+          bfs_edge.push(bfs_temp);
+        }
+        for (let i = 0; i < size; i++) {
+          each.push(Math.floor(Math.random() * (size - 1)) + 1);
+        }
+        for (let i = 0; i < size; i++) {
+          for (let j = i; j < size; j++) {
+            let p = Math.floor(Math.random() * 2 + 1) - 1;
+            edge[i][j] = p;
+            edge[j][i] = p;
+            count++;
+          }
+        }
+      }
+
+      function create_graph(edge, bfsMode = false, highlightEdge = null) {
+        // Background
+        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        // Graph area
+        drawGlassyRect(
+          0,
+          0,
+          ctx.canvas.width - 220,
+          ctx.canvas.height,
+          "rgba(31,41,55,0.95)",
+          "#4ade80",
+          32,
+          true
+        );
+
+        // Edges
+        for (let i = 0; i < size; i++) {
+          for (let j = i; j < size; j++) {
+            if (+edge[i][j] == 1) {
+              let color =
+                highlightEdge &&
+                ((i === highlightEdge[0] && j === highlightEdge[1]) ||
+                  (i === highlightEdge[1] && j === highlightEdge[0]))
+                  ? "#fbbf24"
+                  : "#fff";
+              createLine(i, j, color, color === "#fbbf24" ? 7 : 4);
+            }
+          }
+        }
+        // Nodes
+        for (let i = 0; i < size; i++) {
+          let highlight =
+            highlightEdge && (i === highlightEdge[0] || i === highlightEdge[1]);
+          createNode(i, highlight ? "#fbbf24" : "#4ade80", highlight);
+        }
+        // Node labels
+        for (let i = 0; i < size; i++) {
+          createText(i, "#fff");
+        }
+        // Shell area for BFS order
+        drawGlassyRect(
+          ctx.canvas.width - 200,
+          0,
+          200,
+          ctx.canvas.height,
+          "rgba(31,41,55,0.92)",
+          "#fbbf24",
+          30,
+          true
+        );
+        ctx.font = "bold 24px Poppins, sans-serif";
+        ctx.fillStyle = "#fbbf24";
+        ctx.textAlign = "center";
+        ctx.fillText("BFS Order", ctx.canvas.width - 100, 38);
+      }
+
+      function createLine(i, j, color = "#fff", width = 4) {
+        ctx.save();
+        ctx.strokeStyle = color;
+        let x1 = each[i] * dx + dimension / 2 + rel;
+        let y1 = i * dy + dimension / 2 + rel;
+        let x2 = each[j] * dx + dimension / 2 + rel;
+        let y2 = j * dy + dimension / 2 + rel;
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineWidth = width;
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 12;
+        ctx.lineCap = "round";
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+        ctx.closePath();
+        ctx.restore();
+      }
+
+      function createNode(i, color = "#4ade80", highlight = false) {
+        let x = each[i] * dx + dimension / 2 + rel;
+        let y = i * dy + dimension / 2 + rel;
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(x, y, dimension, 0, Math.PI * 2);
+        ctx.shadowColor = color;
+        ctx.shadowBlur = highlight ? 24 : 12;
+        ctx.fillStyle = color;
+        ctx.globalAlpha = highlight ? 1 : 0.85;
+        ctx.fill();
+        ctx.restore();
+      }
+
+      function createText(i, color = "#fff") {
+        let x = each[i] * dx + dimension / 2 + rel;
+        let y = i * dy + dimension / 2 + rel;
+        ctx.font = "bold 25px Poppins, sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillStyle = color;
+        ctx.fillText(arr[i], x, y);
+      }
+
+      function createShell(i, val) {
+        let x = ctx.canvas.width - 190;
+        let y = 70 + i * 80;
+        drawGlassyRect(x, y, 170, 60, "#222", "#4ade80", 16, true);
+        ctx.font = "bold 32px Poppins, sans-serif";
+        ctx.fillStyle = "#4ade80";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(val, x + 85, y + 30);
+      }
+
+      function drawGlassyRect(x, y, w, h, fill, stroke, r = 18, shadow = true) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.lineTo(x + w - r, y);
+        ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+        ctx.lineTo(x + w, y + h - r);
+        ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+        ctx.lineTo(x + r, y + h);
+        ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+        ctx.lineTo(x, y + r);
+        ctx.quadraticCurveTo(x, y, x + r, y);
+        ctx.closePath();
+        if (shadow) {
+          ctx.shadowColor = "#4ade80";
+          ctx.shadowBlur = 14;
+        }
+        ctx.fillStyle = fill;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        if (stroke) {
+          ctx.strokeStyle = stroke;
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      function sleep(ms) {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+      }
+    </script>
+  </body>
+</html>

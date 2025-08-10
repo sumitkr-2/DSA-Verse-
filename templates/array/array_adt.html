@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Array Visualization - DSA Verse</title>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      :root {
+        --primary-color: #4ade80;
+        --dark-bg: #111827;
+        --light-dark-bg: #1f2937;
+        --card-bg: rgba(31, 41, 55, 0.5);
+        --text-color: #e5e7eb;
+        --border-color: rgba(255, 255, 255, 0.1);
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        font-family: "Poppins", sans-serif;
+        background: linear-gradient(
+          135deg,
+          var(--light-dark-bg),
+          var(--dark-bg)
+        );
+        color: var(--text-color);
+        min-height: 100vh;
+        overflow: hidden;
+        text-align: center;
+      }
+
+      #main-content {
+        padding: 3rem 1.5rem;
+        max-width: 1050px;
+        margin: 0 auto;
+      }
+      .page-header {
+        text-align: center;
+        margin-bottom: 2.5rem;
+      }
+      .back-link {
+        text-decoration: none;
+      }
+      .heading {
+        font-weight: 700;
+        font-size: clamp(2.5rem, 5vw, 3.5rem);
+        color: #fff;
+        text-shadow: 0 0 15px rgba(74, 222, 128, 0.6);
+        transition: transform 0.3s ease;
+      }
+      .back-link:hover .heading {
+        transform: scale(1.05);
+      }
+
+      .canvas-container {
+        background: var(--card-bg);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 1rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        margin-bottom: 2rem;
+      }
+      .grid {
+        width: 100%;
+        height: auto;
+        border-radius: 8px;
+      }
+
+      .controls-panel {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+      }
+      .control-btn {
+        background-color: var(--primary-color);
+        color: var(--dark-bg);
+        border: none;
+        padding: 0.75rem 2.5rem;
+        border-radius: 50px;
+        font-family: "Poppins", sans-serif;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(74, 222, 128, 0.2);
+      }
+      .control-btn:hover {
+        transform: scale(1.05) translateY(-2px);
+        box-shadow: 0 8px 25px rgba(74, 222, 128, 0.4);
+      }
+
+      /* Modal Styling */
+      .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(8px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+      }
+      .modal-overlay.active {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .modal-content {
+        background: var(--light-dark-bg);
+        padding: 2rem;
+        border-radius: 16px;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+        width: 90%;
+        max-width: 400px;
+        transform: scale(0.95);
+        transition: transform 0.3s ease;
+      }
+      .modal-overlay.active .modal-content {
+        transform: scale(1);
+      }
+      #modal-title {
+        font-size: 1.75rem;
+        color: var(--primary-color);
+        margin-bottom: 1.5rem;
+      }
+      .form-group {
+        margin-bottom: 1rem;
+        text-align: left;
+      }
+      .form-group label {
+        display: block;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+      }
+      .form-group input {
+        width: 100%;
+        padding: 0.75rem;
+        background: var(--dark-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        color: var(--text-color);
+        font-family: "Poppins", sans-serif;
+        font-size: 1rem;
+      }
+      .modal-footer {
+        margin-top: 2rem;
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+      }
+      .modal-footer button {
+        padding: 0.6rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+      #modal-cancel {
+        background: transparent;
+        border: 1px solid var(--border-color);
+        color: var(--text-color);
+      }
+      #modal-cancel:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
+      #modal-submit {
+        background: var(--primary-color);
+        border: 1px solid var(--primary-color);
+        color: var(--dark-bg);
+      }
+      #modal-submit:hover {
+        opacity: 0.9;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="main-content">
+      <div class="page-header">
+        <a href="../datastructures.html" class="back-link"
+          ><h1 class="heading">Array Visualization</h1></a
+        >
+      </div>
+      <div class="canvas-container">
+        <canvas class="grid" width="1000" height="400"></canvas>
+      </div>
+      <div class="controls-panel">
+        <button class="control-btn" id="arr-insert">Insert</button>
+        <button class="control-btn" id="arr-delete">Delete</button>
+      </div>
+    </div>
+
+    <!-- Modal for Insert/Delete -->
+    <div class="modal-overlay" id="action-modal">
+      <div class="modal-content">
+        <h3 id="modal-title">Action</h3>
+        <div id="modal-body">
+          <div class="form-group" id="index-group">
+            <label for="input-index">Index</label>
+            <input type="number" id="input-index" value="0" required />
+          </div>
+          <div class="form-group" id="value-group">
+            <label for="input-value">Value</label>
+            <input type="number" id="input-value" value="10" required />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="modal-cancel">Cancel</button>
+          <button id="modal-submit">Submit</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const arr = [];
+      const max = 100;
+      const time_delay = 300;
+      const size = 16;
+      const no_of_null = 7;
+
+      const canvas = document.querySelector("canvas");
+      const ctx = canvas.getContext("2d");
+      const rect = { width: 60, height: 30 };
+
+      let currentAction = null;
+
+      function randomize_an_array() {
+        for (let i = 0; i < size; i++) {
+          arr[i] =
+            i < size - no_of_null ? Math.floor(Math.random() * max + 1) : "\\0";
+        }
+      }
+
+      function clearCanvas() {
+        ctx.fillStyle = getComputedStyle(document.documentElement)
+          .getPropertyValue("--light-dark-bg")
+          .trim();
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+
+      function animate(glit_color = -1) {
+        clearCanvas();
+        const theme = {
+          primary: getComputedStyle(document.documentElement)
+            .getPropertyValue("--primary-color")
+            .trim(),
+          text: getComputedStyle(document.documentElement)
+            .getPropertyValue("--text-color")
+            .trim(),
+          dark: getComputedStyle(document.documentElement)
+            .getPropertyValue("--dark-bg")
+            .trim(),
+          cardBg: "rgba(255, 255, 255, 0.1)",
+        };
+
+        arr.forEach((e, i) => {
+          ctx.fillStyle = i === glit_color ? theme.primary : theme.cardBg;
+          ctx.fillRect(
+            i * rect.width + i + 10,
+            canvas.height / 2,
+            rect.width,
+            rect.height
+          );
+
+          ctx.fillStyle = i === glit_color ? theme.dark : theme.text;
+          ctx.font = "600 15px Poppins";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(
+            `${e}`,
+            i * rect.width + i + 10 + rect.width / 2,
+            canvas.height / 2 + rect.height / 2
+          );
+        });
+
+        for (let i = 0; i < size; i++) {
+          ctx.fillStyle = theme.primary;
+          ctx.font = "600 15px Poppins";
+          ctx.fillText(
+            `${i}`,
+            i * rect.width + i + 10 + rect.width / 2,
+            canvas.height / 2 + rect.height * 2
+          );
+        }
+        ctx.fillStyle = theme.text;
+        ctx.font = "600 14px Poppins";
+        ctx.textAlign = "left";
+        ctx.fillText("Index:", 10, canvas.height / 2 + rect.height * 2);
+      }
+
+      async function insert_animation(value, index) {
+        if (arr.indexOf("\\0") === -1) {
+          alert("Array is full. Cannot insert.");
+          return;
+        }
+        for (let j = size - 1; j > index; j--) {
+          arr[j] = arr[j - 1];
+          await sleep(time_delay);
+          animate(j - 1);
+        }
+        arr[index] = value;
+        animate();
+      }
+
+      async function delete_animation(index) {
+        if (arr[index] === "\\0") {
+          alert("Cannot delete an empty element.");
+          return;
+        }
+        for (let j = index; j < size - 1; j++) {
+          arr[j] = arr[j + 1];
+          await sleep(time_delay);
+          animate(j + 1);
+        }
+        arr[size - 1] = "\\0";
+        animate();
+      }
+
+      function sleep(ms) {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+      }
+
+      // Modal Logic
+      const modal = document.getElementById("action-modal");
+      const modalTitle = document.getElementById("modal-title");
+      const indexGroup = document.getElementById("index-group");
+      const valueGroup = document.getElementById("value-group");
+      const inputIndex = document.getElementById("input-index");
+      const inputValue = document.getElementById("input-value");
+
+      function openModal(action) {
+        currentAction = action;
+        modalTitle.textContent =
+          action === "insert" ? "Insert Element" : "Delete Element";
+        indexGroup.style.display = "block";
+        valueGroup.style.display = action === "insert" ? "block" : "none";
+        modal.classList.add("active");
+      }
+
+      function closeModal() {
+        modal.classList.remove("active");
+      }
+
+      document
+        .getElementById("arr-insert")
+        .addEventListener("click", () => openModal("insert"));
+      document
+        .getElementById("arr-delete")
+        .addEventListener("click", () => openModal("delete"));
+      document
+        .getElementById("modal-cancel")
+        .addEventListener("click", closeModal);
+
+      document.getElementById("modal-submit").addEventListener("click", () => {
+        const index = parseInt(inputIndex.value, 10);
+        if (index < 0 || index >= size) {
+          alert(
+            "Invalid index. Please enter a value between 0 and " + (size - 1)
+          );
+          return;
+        }
+
+        if (currentAction === "insert") {
+          const value = parseInt(inputValue.value, 10);
+          insert_animation(value, index);
+        } else if (currentAction === "delete") {
+          delete_animation(index);
+        }
+        closeModal();
+      });
+
+      // Initial setup
+      randomize_an_array();
+      animate();
+    </script>
+  </body>
+</html>

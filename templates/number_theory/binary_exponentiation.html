@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Binary Exponentiation - DSA Verse</title>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Roboto+Mono:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --primary-color: #4ade80;
+        --dark-bg: #111827;
+        --light-dark-bg: #1f2937;
+        --card-bg: rgba(31, 41, 55, 0.5);
+        --text-color: #e5e7eb;
+        --border-color: rgba(255, 255, 255, 0.1);
+        --danger: #f43f5e;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        font-family: "Poppins", sans-serif;
+        background: linear-gradient(
+          135deg,
+          var(--light-dark-bg),
+          var(--dark-bg)
+        );
+        color: var(--text-color);
+        min-height: 100vh;
+        text-align: center;
+        overflow-x: hidden;
+      }
+
+      #main-content {
+        padding: 3rem 1.5rem;
+        max-width: 1050px;
+        margin: 0 auto;
+      }
+
+      .page-header {
+        text-align: center;
+        margin-bottom: 2.5rem;
+      }
+      .back-link {
+        text-decoration: none;
+      }
+      .heading {
+        font-weight: 700;
+        font-size: clamp(2.5rem, 5vw, 3.5rem);
+        color: #fff;
+        text-shadow: 0 0 15px rgba(74, 222, 128, 0.6);
+        transition: transform 0.3s ease;
+      }
+      .back-link:hover .heading {
+        transform: scale(1.05);
+      }
+      @keyframes float {
+        0% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-10px);
+        }
+        100% {
+          transform: translateY(0);
+        }
+      }
+
+      .canvas-container {
+        background: var(--card-bg);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 1.5rem 1rem 2rem 1rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        margin-bottom: 2rem;
+        width: 100%;
+        max-width: 1050px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      .grid {
+        width: 100%;
+        height: auto;
+        border-radius: 8px;
+        background: transparent;
+        display: block;
+        margin: 0 auto;
+      }
+
+      .controls-panel {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+      }
+      .a {
+        background: rgba(74, 222, 128, 0.12);
+        color: var(--primary-color);
+        font-weight: 600;
+        font-size: 1.2rem;
+        border-radius: 16px;
+        border: 1px solid var(--primary-color);
+        padding: 10px 24px;
+        box-shadow: 0 2px 8px rgba(74, 222, 128, 0.1);
+        font-family: "Poppins", sans-serif;
+        display: flex;
+        align-items: center;
+        height: 44px;
+      }
+      .number {
+        width: 140px;
+        padding: 10px 14px;
+        font-size: 1.1rem;
+        font-family: "Roboto Mono", monospace;
+        background: var(--dark-bg);
+        color: #fff;
+        border: 1.5px solid var(--primary-color);
+        border-radius: 12px;
+        outline: none;
+        box-shadow: 0 1px 4px rgba(74, 222, 128, 0.1);
+        transition: border 0.2s;
+        height: 44px;
+      }
+      .number:focus {
+        border-color: #36a166;
+      }
+      .exponentiation {
+        background-color: var(--primary-color);
+        color: var(--dark-bg);
+        border: none;
+        padding: 0 36px;
+        border-radius: 50px;
+        font-family: "Poppins", sans-serif;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(74, 222, 128, 0.2);
+        height: 44px;
+        letter-spacing: 1px;
+      }
+      .exponentiation:hover {
+        transform: scale(1.05) translateY(-2px);
+        box-shadow: 0 8px 25px rgba(74, 222, 128, 0.4);
+      }
+      .exponentiation:disabled {
+        opacity: 0.65;
+        cursor: not-allowed;
+      }
+
+      @media (max-width: 800px) {
+        #main-content {
+          padding: 1.2rem 0.5rem;
+        }
+        .canvas-container {
+          padding: 0.7rem 0.2rem 1.2rem 0.2rem;
+        }
+        .controls-panel {
+          flex-direction: column;
+          gap: 0.7rem;
+        }
+        .a,
+        .number,
+        .exponentiation {
+          width: 90%;
+          min-width: 120px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="main-content">
+      <div class="page-header">
+        <a href="../number_theory.html" class="back-link"
+          ><h1 class="heading">Binary Exponentiation</h1>
+        </a>
+      </div>
+      <div class="canvas-container">
+        <canvas class="grid" width="1000" height="400"></canvas>
+      </div>
+      <div class="controls-panel">
+        <span class="a">2</span>
+        <input
+          class="number"
+          type="number"
+          placeholder="Enter exponent (1-32)"
+          min="1"
+          max="32"
+        />
+        <button class="exponentiation">Exponentiate</button>
+      </div>
+    </div>
+    <script>
+      // Helper: Draw rounded rectangle
+      function drawRoundRect(ctx, x, y, w, h, r, fill, stroke, shadow = false) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.lineTo(x + w - r, y);
+        ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+        ctx.lineTo(x + w, y + h - r);
+        ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+        ctx.lineTo(x + r, y + h);
+        ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+        ctx.lineTo(x, y + r);
+        ctx.quadraticCurveTo(x, y, x + r, y);
+        ctx.closePath();
+        if (shadow) {
+          ctx.shadowColor = "rgba(74,222,128,0.25)";
+          ctx.shadowBlur = 18;
+          ctx.shadowOffsetX = 0;
+          ctx.shadowOffsetY = 4;
+        }
+        if (fill) {
+          ctx.fillStyle = fill;
+          ctx.fill();
+        }
+        if (stroke) {
+          ctx.strokeStyle = stroke;
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      // Helper: Gradient text
+      function gradientText(
+        ctx,
+        text,
+        x,
+        y,
+        font,
+        size,
+        width,
+        color1,
+        color2
+      ) {
+        ctx.save();
+        ctx.font = `${
+          font ? font : "bold"
+        } ${size}px 'Poppins', 'Roboto Mono', sans-serif`;
+        let grad = ctx.createLinearGradient(x, y - size, x + width, y);
+        grad.addColorStop(0, color1);
+        grad.addColorStop(1, color2);
+        ctx.fillStyle = grad;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(text, x + width / 2, y);
+        ctx.restore();
+      }
+
+      // Main Simulation Logic
+      const canvas = document.querySelector("canvas");
+      const ctx = canvas.getContext("2d");
+      let bits = [];
+      let time_delay = 10;
+
+      function clearCanvas() {
+        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+      }
+
+      function init() {
+        bits = [];
+        for (let i = 0; i < 32; i++) bits.push(0);
+        clearCanvas();
+        draw_bits();
+        draw_index();
+        add_listeners();
+      }
+
+      function add_listeners() {
+        document
+          .querySelector(".exponentiation")
+          .addEventListener("click", () => {
+            let val = document.querySelector(".number").value;
+            if (val === "") {
+              alert("Please enter a number");
+              return;
+            }
+            if (val > 32 || val <= 0) {
+              alert("Value should be between 1 and 32");
+              return;
+            }
+            document.querySelector(".exponentiation").disabled = true;
+            val = +val;
+            let b = val;
+            let count = 0;
+            bits = Array(32).fill(0);
+            while (val) {
+              if (val & 1) bits[count] = 1;
+              count++;
+              val >>= 1;
+            }
+            draw_bits(true).then(() => {
+              binary_expo(b).then(() => {
+                document.querySelector(".exponentiation").disabled = false;
+              });
+            });
+          });
+      }
+
+      // Modernized Drawing Functions
+      async function result(val, p = false) {
+        let y = 110,
+          w = 220,
+          h = 54,
+          x = ctx.canvas.width / 2 - w / 2,
+          r = 16;
+        ctx.clearRect(x - 10, y - 10, w + 20, h + 20);
+        let fill = p ? "#f43f5e" : "rgba(31,41,55,0.8)";
+        let stroke = p ? "#f43f5e" : "#4ade80";
+        drawRoundRect(ctx, x, y, w, h, r, fill, stroke, true);
+        ctx.font = "bold 17px 'Poppins', sans-serif";
+        ctx.fillStyle = "#fff";
+        ctx.textAlign = "left";
+        ctx.textBaseline = "top";
+        ctx.fillText("Result", x + 18, y + 10);
+        gradientText(
+          ctx,
+          val,
+          x,
+          y + h / 2 + 6,
+          "bold",
+          26,
+          w,
+          "#4ade80",
+          "#36a166"
+        );
+      }
+
+      async function aVal(val) {
+        let y = 190,
+          w = 220,
+          h = 54,
+          x = ctx.canvas.width / 2 - w / 2,
+          r = 16;
+        ctx.clearRect(x - 10, y - 10, w + 20, h + 20);
+        drawRoundRect(
+          ctx,
+          x,
+          y,
+          w,
+          h,
+          r,
+          "rgba(31,41,55,0.8)",
+          "#4ade80",
+          true
+        );
+        ctx.font = "bold 17px 'Poppins', sans-serif";
+        ctx.fillStyle = "#fff";
+        ctx.textAlign = "left";
+        ctx.textBaseline = "top";
+        ctx.fillText("2 power", x + 18, y + 10);
+        gradientText(
+          ctx,
+          val,
+          x,
+          y + h / 2 + 6,
+          "bold",
+          26,
+          w,
+          "#4ade80",
+          "#36a166"
+        );
+      }
+
+      async function draw_bits(slow = false, ii = -1) {
+        let pw = ctx.canvas.width / 32;
+        let ph = pw;
+        ctx.clearRect(0, 0, ctx.canvas.width, ph + 4);
+        ctx.save();
+        ctx.font = "bold 19px 'Roboto Mono', monospace";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        for (let i = 0; i < 32; i++) {
+          let bx = i * pw,
+            by = 0;
+          if (ii != -1 && 31 - i === ii) {
+            ctx.shadowColor = "#4ade80";
+            ctx.shadowBlur = 15;
+            ctx.fillStyle = "#4ade80";
+          } else if (bits[31 - i]) {
+            ctx.shadowColor = "#36a166";
+            ctx.shadowBlur = 8;
+            ctx.fillStyle = "#222e";
+          } else {
+            ctx.shadowColor = "transparent";
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = "#111c";
+          }
+          drawRoundRect(
+            ctx,
+            bx + 2,
+            by + 2,
+            pw - 4,
+            ph - 4,
+            8,
+            ctx.fillStyle,
+            "#333"
+          );
+          ctx.fillStyle =
+            ii != -1 && 31 - i === ii
+              ? "#fff"
+              : bits[31 - i]
+              ? "#4ade80"
+              : "#fff";
+          ctx.fillText(bits[31 - i], bx + pw / 2, ph / 2);
+        }
+        ctx.restore();
+        if (slow) await new Promise((res) => setTimeout(res, time_delay * 1.2));
+      }
+
+      async function draw_index() {
+        let pw = ctx.canvas.width / 32;
+        let ph = pw;
+        let h = 36;
+        ctx.clearRect(0, h, ctx.canvas.width, ph + 4);
+        ctx.save();
+        ctx.font = "bold 12px 'Roboto Mono', monospace";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        for (let i = 0; i < 32; i++) {
+          let bx = i * pw,
+            by = h;
+          ctx.fillStyle = "#f43f5e";
+          drawRoundRect(
+            ctx,
+            bx + 2,
+            by + 2,
+            pw - 4,
+            ph - 4,
+            8,
+            "#f43f5e",
+            "#fff"
+          );
+          ctx.fillStyle = "#fff";
+          ctx.fillText(31 - i, bx + pw / 2, by + ph / 2);
+        }
+        ctx.restore();
+      }
+
+      // Binary Exponentiation Animation
+      async function binary_expo(b) {
+        let a = 2;
+        let res = 1;
+        let count = 0;
+        time_delay = 1000;
+        await sleep(time_delay).then(() => {
+          result(res);
+          aVal(a);
+          draw_bits(false, count);
+        });
+        while (b) {
+          if (b & 1) {
+            res *= a;
+            await sleep(time_delay).then(() => {
+              result(res);
+            });
+          }
+          a *= a;
+          await sleep(time_delay).then(() => {
+            aVal(a);
+          });
+          count++;
+          b >>= 1;
+          await sleep(time_delay).then(() => {
+            draw_bits(false, count);
+          });
+        }
+        await sleep(time_delay).then(() => {
+          result(res, true);
+        });
+      }
+
+      function sleep(ms) {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+      }
+
+      window.onload = init;
+    </script>
+  </body>
+</html>

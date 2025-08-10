@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Rabin Karp - DSA Verse</title>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Roboto+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      :root {
+        --primary-color: #4ade80; /* Green for found pattern */
+        --dark-bg: #111827;
+        --light-dark-bg: #1f2937;
+        --card-bg: rgba(31, 41, 55, 0.5);
+        --text-color: #e5e7eb;
+        --border-color: rgba(255, 255, 255, 0.1);
+        --match-color: #22c55e;
+        --mismatch-color: #f87171; /* Red for mismatch */
+        --window-color: #3b82f6; /* Blue for sliding window */
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        font-family: "Poppins", sans-serif;
+        background: linear-gradient(
+          135deg,
+          var(--light-dark-bg),
+          var(--dark-bg)
+        );
+        color: var(--text-color);
+        min-height: 100vh;
+        overflow: hidden;
+        text-align: center;
+      }
+
+      #main-content {
+        padding: 3rem 1.5rem;
+        max-width: 1050px;
+        margin: 0 auto;
+      }
+      .page-header {
+        text-align: center;
+        margin-bottom: 2.5rem;
+      }
+      .back-link {
+        text-decoration: none;
+      }
+      .heading {
+        font-weight: 700;
+        font-size: clamp(2.5rem, 5vw, 3.5rem);
+        color: #fff;
+        text-shadow: 0 0 15px rgba(74, 222, 128, 0.6);
+        transition: transform 0.3s ease;
+      }
+      .back-link:hover .heading {
+        transform: scale(1.05);
+      }
+
+      .canvas-container {
+        background: var(--card-bg);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 1rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        margin-bottom: 2rem;
+      }
+      .grid {
+        width: 100%;
+        height: auto;
+        border-radius: 8px;
+      }
+
+      .controls-panel {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-bottom: 1.5rem;
+      }
+      .controls-panel input {
+        background: var(--dark-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 0.75rem;
+        color: var(--text-color);
+        font-family: "Roboto Mono", monospace;
+        font-size: 1rem;
+        width: 250px;
+      }
+      .control-btn {
+        background-color: var(--primary-color);
+        color: var(--dark-bg);
+        border: none;
+        padding: 0.75rem 2rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+      .control-btn:hover {
+        transform: scale(1.05);
+      }
+      .control-btn:disabled {
+        background-color: #4b5563;
+        cursor: not-allowed;
+      }
+
+      /* Legend */
+      .legend {
+        display: flex;
+        justify-content: center;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+      }
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .legend-color {
+        width: 20px;
+        height: 20px;
+        border-radius: 4px;
+        border: 1px solid var(--border-color);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="main-content">
+      <div class="page-header">
+        <a href="../string.html" class="back-link"
+          ><h1 class="heading">Rabin-Karp Search</h1></a
+        >
+      </div>
+      <div class="canvas-container">
+        <canvas class="grid" width="1000" height="300"></canvas>
+      </div>
+      <div class="controls-panel">
+        <input id="text-input" value="ABABDABACDABABCABAB" />
+        <input id="pattern-input" value="ABABCABAB" />
+        <button class="control-btn visualize">Compare</button>
+      </div>
+      <div class="legend">
+        <div class="legend-item">
+          <div
+            class="legend-color"
+            style="background-color: var(--window-color)"
+          ></div>
+          <span>Sliding Window</span>
+        </div>
+        <div class="legend-item">
+          <div
+            class="legend-color"
+            style="background-color: var(--match-color)"
+          ></div>
+          <span>Char Match</span>
+        </div>
+        <div class="legend-item">
+          <div
+            class="legend-color"
+            style="background-color: var(--mismatch-color)"
+          ></div>
+          <span>Char Mismatch</span>
+        </div>
+        <div class="legend-item">
+          <div
+            class="legend-color"
+            style="background-color: var(--primary-color)"
+          ></div>
+          <span>Pattern Found</span>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const ctx = document.querySelector("canvas").getContext("2d");
+      const time_delay = 800;
+      let text, pattern;
+
+      const theme = {
+        primary: getComputedStyle(document.documentElement)
+          .getPropertyValue("--primary-color")
+          .trim(),
+        match: getComputedStyle(document.documentElement)
+          .getPropertyValue("--match-color")
+          .trim(),
+        mismatch: getComputedStyle(document.documentElement)
+          .getPropertyValue("--mismatch-color")
+          .trim(),
+        window: getComputedStyle(document.documentElement)
+          .getPropertyValue("--window-color")
+          .trim(),
+        text: getComputedStyle(document.documentElement)
+          .getPropertyValue("--text-color")
+          .trim(),
+        cardBg: "#374151",
+      };
+
+      function simpleHash(str) {
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+          hash += str.charCodeAt(i);
+        }
+        return hash;
+      }
+
+      function render(windowStart, status, j_ptr, foundAt = []) {
+        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        const barWidth = 45;
+        const barHeight = 60;
+        const gap = 5;
+        const m = pattern.length;
+        const windowEnd = windowStart + m - 1;
+
+        // --- Draw Text String ---
+        ctx.fillStyle = theme.text;
+        ctx.font = "600 16px Poppins";
+        ctx.textAlign = "left";
+        ctx.fillText("Text:", 10, 40);
+        for (let k = 0; k < text.length; k++) {
+          let bgColor = theme.cardBg;
+          // Highlight found patterns
+          for (const index of foundAt) {
+            if (k >= index && k < index + m) bgColor = theme.primary;
+          }
+          // Highlight current window
+          if (k >= windowStart && k <= windowEnd) {
+            bgColor = theme.window;
+            if (status === "char_compare" && k === windowStart + j_ptr) {
+              bgColor =
+                text[k] === pattern[j_ptr] ? theme.match : theme.mismatch;
+            }
+          }
+
+          const x = k * (barWidth + gap) + 10;
+          ctx.fillStyle = bgColor;
+          ctx.fillRect(x, 60, barWidth, barHeight);
+
+          ctx.fillStyle = theme.text;
+          ctx.font = "600 18px 'Roboto Mono'";
+          ctx.textAlign = "center";
+          ctx.fillText(text[k], x + barWidth / 2, 60 + barHeight / 2 + 5);
+        }
+
+        // --- Draw Hash Values ---
+        const currentWindowText = text.substring(windowStart, windowStart + m);
+        const patternHash = simpleHash(pattern);
+        const windowHash = simpleHash(currentWindowText);
+
+        ctx.font = "600 18px Poppins";
+        ctx.textAlign = "center";
+        ctx.fillStyle =
+          patternHash === windowHash ? theme.primary : theme.mismatch;
+        ctx.fillText(`Pattern Hash: ${patternHash}`, ctx.canvas.width / 4, 200);
+        ctx.fillText(
+          `Window Hash: ${windowHash}`,
+          (ctx.canvas.width * 3) / 4,
+          200
+        );
+
+        if (patternHash === windowHash && status === "hash_match") {
+          ctx.fillStyle = theme.primary;
+          ctx.fillText(
+            "Hashes Match! Verifying characters...",
+            ctx.canvas.width / 2,
+            250
+          );
+        }
+      }
+
+      async function animateRabinKarp() {
+        const button = document.querySelector(".visualize");
+        button.disabled = true;
+
+        text = document.getElementById("text-input").value;
+        pattern = document.getElementById("pattern-input").value;
+        if (!text || !pattern || text.length < pattern.length) {
+          alert("Invalid input. Text must be longer than the pattern.");
+          button.disabled = false;
+          return;
+        }
+
+        const n = text.length;
+        const m = pattern.length;
+        const patternHash = simpleHash(pattern);
+        let foundAt = [];
+
+        for (let i = 0; i <= n - m; i++) {
+          const currentWindowText = text.substring(i, i + m);
+          const windowHash = simpleHash(currentWindowText);
+
+          render(i, "comparing", -1, foundAt);
+          await sleep(time_delay);
+
+          if (patternHash === windowHash) {
+            // Hashes match, now verify characters (handle spurious hits)
+            render(i, "hash_match", -1, foundAt);
+            await sleep(time_delay);
+
+            let match = true;
+            for (let j = 0; j < m; j++) {
+              render(i, "char_compare", j, foundAt);
+              await sleep(time_delay / 2);
+              if (text[i + j] !== pattern[j]) {
+                match = false;
+                break;
+              }
+            }
+
+            if (match) {
+              foundAt.push(i);
+            }
+          }
+        }
+
+        if (foundAt.length > 0) {
+          alert(`Pattern found at indices: ${foundAt.join(", ")}`);
+        } else {
+          alert("Pattern not found in the text.");
+        }
+        render(-1, "none", -1, foundAt); // Final render
+        button.disabled = false;
+      }
+
+      function sleep(ms) {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+      }
+
+      function init() {
+        text = document.getElementById("text-input").value;
+        pattern = document.getElementById("pattern-input").value;
+        render(-1, "none", -1);
+      }
+
+      document
+        .querySelector(".visualize")
+        .addEventListener("click", animateRabinKarp);
+      init();
+    </script>
+  </body>
+</html>

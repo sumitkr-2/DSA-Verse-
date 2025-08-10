@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Graph Coloring - DSA Verse</title>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Roboto+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --primary-color: #4ade80;
+        --dark-bg: #111827;
+        --light-dark-bg: #1f2937;
+        --card-bg: rgba(31, 41, 55, 0.5);
+        --text-color: #e5e7eb;
+        --border-color: rgba(255, 255, 255, 0.1);
+        --uncolored-node: #374151;
+        --canvas-bg: #23272e;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        font-family: "Poppins", sans-serif;
+        background: linear-gradient(
+          135deg,
+          var(--light-dark-bg),
+          var(--dark-bg)
+        );
+        color: var(--text-color);
+        min-height: 100vh;
+        overflow: hidden;
+        text-align: center;
+      }
+      #main-content {
+        padding: 3rem 1.5rem;
+        max-width: 1050px;
+        margin: 0 auto;
+      }
+      .page-header {
+        text-align: center;
+        margin-bottom: 2.5rem;
+      }
+      .back-link {
+        text-decoration: none;
+      }
+      .heading {
+        font-weight: 700;
+        font-size: clamp(2.5rem, 5vw, 3.5rem);
+        color: #fff;
+        text-shadow: 0 0 15px rgba(74, 222, 128, 0.6);
+        transition: transform 0.3s ease;
+      }
+      .back-link:hover .heading {
+        transform: scale(1.05);
+      }
+      .canvas-container {
+        background: var(--card-bg);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 1rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        margin-bottom: 2rem;
+      }
+      .grid {
+        width: 100%;
+        height: auto;
+        border-radius: 8px;
+        background: var(--canvas-bg);
+        display: block;
+      }
+      .controls-panel {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+      }
+      .control-btn {
+        background-color: var(--primary-color);
+        color: var(--dark-bg);
+        border: none;
+        padding: 0.75rem 2rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+      .control-btn#reset-btn {
+        background-color: var(--card-bg);
+        color: var(--text-color);
+        border: 1px solid var(--border-color);
+      }
+      .control-btn:hover {
+        transform: scale(1.05);
+      }
+      .control-btn:disabled {
+        background-color: #4b5563;
+        cursor: not-allowed;
+      }
+      .legend {
+        display: flex;
+        justify-content: center;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+      }
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .legend-color {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        border: 1px solid var(--border-color);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="main-content">
+      <div class="page-header">
+        <a href="../backtracking.html" class="back-link"
+          ><h1 class="heading">Graph Coloring</h1></a
+        >
+      </div>
+      <div class="canvas-container">
+        <canvas class="grid" width="1000" height="550"></canvas>
+      </div>
+      <div class="controls-panel">
+        <button class="control-btn dfs">Color Graph</button>
+        <button class="control-btn" id="reset-btn">Reset</button>
+      </div>
+      <div class="legend">
+        <div class="legend-item">
+          <div class="legend-color" style="background-color: #f87171"></div>
+          <span>Color 1</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background-color: #60a5fa"></div>
+          <span>Color 2</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background-color: #facc15"></div>
+          <span>Color 3</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background-color: #a78bfa"></div>
+          <span>Color 4</span>
+        </div>
+      </div>
+    </div>
+    <script>
+      arr = ["a", "b", "c", "d", "e", "f"];
+      color = [];
+      options = ["red", "gray", "orange", "yellow", "blue", "violet"];
+      each = [];
+      size = arr.length;
+      edge = [];
+      bfs_edge = [];
+      dfs_edge = [];
+      dimension = 30;
+      rel = 15;
+      ctx = document.querySelector("canvas").getContext("2d");
+      time_delay = 1000;
+      dx = ctx.canvas.width / size;
+      dy = ctx.canvas.height / size;
+      ctx.save();
+      init_color();
+      create_edges();
+      create_graph();
+      init();
+      flag = 0;
+
+      // Utility
+
+      function init_color() {
+        color = [];
+        for (let i = 0; i < size; i++) color.push("white");
+      }
+
+      function init() {
+        flag = 0;
+        color = [];
+        each = [];
+        edge = [];
+        bfs_edge = [];
+        dfs_edge = [];
+        init_color();
+        create_edges();
+        create_graph();
+        document.querySelector(".dfs").disabled = false;
+        document.getElementById("reset-btn").disabled = false;
+      }
+
+      document.getElementById("reset-btn").addEventListener("click", init);
+
+      document.querySelector(".dfs").addEventListener("click", () => {
+        document.querySelector(".dfs").disabled = true;
+        async function get() {
+          await graph_color(0);
+          create_graph();
+        }
+        get();
+      });
+
+      function check(i, colors) {
+        for (let pos = 0; pos < size; pos++) {
+          if (edge[i][pos]) {
+            if (pos == i) continue;
+            if (color[pos] == colors) return false;
+          }
+        }
+        return true;
+      }
+
+      async function graph_color(i) {
+        if (flag == 1) return;
+        if (i == size) {
+          flag = 1;
+          return;
+        }
+
+        for (let pos = 0; pos < size; pos++) {
+          if (check(i, options[pos])) {
+            if (flag == 1) return;
+            color[i] = options[pos];
+            await sleep(time_delay).then(() => {
+              createBox(i);
+            });
+            await graph_color(i + 1);
+            if (flag == 1) return;
+            color[i] = "white";
+            await sleep(time_delay).then(() => {
+              createBox(i);
+            });
+          }
+        }
+      }
+
+      function create_edges() {
+        count = 0;
+        for (let i = 0; i < size; i++) {
+          let temp = [];
+          let dfs_temp = [];
+          let bfs_temp = [];
+          for (let i = 0; i < size; i++) {
+            temp.push(0);
+            dfs_temp.push(0);
+            bfs_temp.push(0);
+          }
+          edge.push(temp);
+          dfs_edge.push(dfs_temp);
+          bfs_edge.push(bfs_temp);
+        }
+
+        for (let i = 0; i < size; i++) {
+          each.push(Math.floor(Math.random() * (size - 1)) + 1);
+        }
+
+        for (let i = 0; i < size; i++) {
+          for (let j = i; j < size; j++) {
+            let p = Math.floor(Math.random() * 2 + 1) - 1 != 0 ? 1 : 0;
+            edge[i][j] = p;
+            edge[j][i] = p;
+            count++;
+          }
+        }
+      }
+
+      function createLine(i, j, color = "black") {
+        ctx.beginPath();
+        ctx.strokeStyle = color;
+        let x = each[i] * dx + dimension / 2 + rel;
+        let y = i * dy + dimension / 2 + rel;
+        ctx.moveTo(x, y);
+        ctx.lineWidth = 4;
+        x = each[j] * dx + dimension / 2 + rel;
+        y = j * dy + dimension / 2 + rel;
+        ctx.lineTo(x, y);
+        ctx.stroke();
+        ctx.closePath();
+      }
+
+      function createBox(i) {
+        ctx.beginPath();
+        ctx.moveTo(each[i] * dx, i * dy);
+        let x = each[i] * dx + dimension / 2 + rel;
+        let y = i * dy + dimension / 2 + rel;
+        ctx.arc(x, y, dimension, 0, Math.PI * 2);
+        ctx.fillStyle = color[i];
+        ctx.fill();
+        ctx.closePath();
+        ctx.fillStyle = "white";
+      }
+
+      function createText(i, color = "white") {
+        ctx.beginPath();
+        ctx.moveTo(each[i] * dx, i * dy);
+        let x = each[i] * dx + dimension / 2 + rel;
+        let y = i * dy + dimension / 2 + rel;
+        ctx.fillStyle = color;
+        ctx.font = "bolder 25px ubuntu";
+        ctx.moveTo(each[i] * dx, i * dy);
+        ctx.fillText(arr[i], x, y);
+        ctx.closePath();
+      }
+
+      async function create_graph() {
+        ctx.fillStyle = getComputedStyle(
+          document.documentElement
+        ).getPropertyValue("--canvas-bg");
+        ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        for (let i = 0; i < size; i++) {
+          for (let j = i; j < size; j++) {
+            if (+edge[i][j] == 1) {
+              createLine(i, j);
+            }
+          }
+        }
+        for (let i = 0; i < size; i++) {
+          createBox(i);
+        }
+        ctx.fillStyle = getComputedStyle(
+          document.documentElement
+        ).getPropertyValue("--canvas-bg");
+      }
+
+      function sleep(ms) {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+      }
+    </script>
+  </body>
+</html>

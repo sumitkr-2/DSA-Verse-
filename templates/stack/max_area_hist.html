@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Max Area Under Histogram - DSA Verse</title>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      :root {
+        --primary-color: #4ade80;
+        --dark-bg: #111827;
+        --light-dark-bg: #1f2937;
+        --card-bg: rgba(31, 41, 55, 0.5);
+        --text-color: #e5e7eb;
+        --border-color: rgba(255, 255, 255, 0.1);
+        --bar-color: #4b5563;
+        --highlight-color: #facc15; /* Yellow */
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        font-family: "Poppins", sans-serif;
+        background: linear-gradient(
+          135deg,
+          var(--light-dark-bg),
+          var(--dark-bg)
+        );
+        color: var(--text-color);
+        min-height: 100vh;
+        overflow: hidden;
+        text-align: center;
+      }
+
+      #main-content {
+        padding: 3rem 1.5rem;
+        max-width: 1050px;
+        margin: 0 auto;
+      }
+      .page-header {
+        text-align: center;
+        margin-bottom: 2.5rem;
+      }
+      .back-link {
+        text-decoration: none;
+      }
+      .heading {
+        font-weight: 700;
+        font-size: clamp(2rem, 5vw, 3rem);
+        color: #fff;
+        text-shadow: 0 0 15px rgba(74, 222, 128, 0.6);
+        transition: transform 0.3s ease;
+      }
+      .back-link:hover .heading {
+        transform: scale(1.05);
+      }
+
+      .canvas-container {
+        background: var(--card-bg);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 1rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        margin-bottom: 2rem;
+      }
+      .grid {
+        width: 100%;
+        height: auto;
+        border-radius: 8px;
+      }
+
+      .controls-panel {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+      }
+      .info-display {
+        background: var(--dark-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+        font-weight: 600;
+      }
+      .info-display .value {
+        color: var(--primary-color);
+        margin-left: 0.5rem;
+        font-size: 1.2rem;
+      }
+      .control-btn {
+        background-color: var(--primary-color);
+        color: var(--dark-bg);
+        border: none;
+        padding: 0.75rem 2.5rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+      .control-btn:hover {
+        transform: scale(1.05);
+      }
+      .control-btn:disabled {
+        background-color: #4b5563;
+        cursor: not-allowed;
+      }
+
+      /* Legend */
+      .legend {
+        display: flex;
+        justify-content: center;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+      }
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .legend-color {
+        width: 20px;
+        height: 20px;
+        border-radius: 4px;
+        border: 1px solid var(--border-color);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="main-content">
+      <div class="page-header">
+        <a href="../stack.html" class="back-link"
+          ><h1 class="heading">Max Area Under Histogram</h1></a
+        >
+      </div>
+      <div class="canvas-container">
+        <canvas class="grid" width="1000" height="500"></canvas>
+      </div>
+      <div class="controls-panel">
+        <div class="info-display">
+          MAX AREA: <span class="value" id="max-area">0</span>
+        </div>
+        <button class="control-btn visualise">Visualize</button>
+      </div>
+      <div class="legend">
+        <div class="legend-item">
+          <div
+            class="legend-color"
+            style="background-color: var(--bar-color)"
+          ></div>
+          <span>Histogram Bar</span>
+        </div>
+        <div class="legend-item">
+          <div
+            class="legend-color"
+            style="background-color: var(--highlight-color)"
+          ></div>
+          <span>Current Area</span>
+        </div>
+        <div class="legend-item">
+          <div
+            class="legend-color"
+            style="background-color: var(--primary-color)"
+          ></div>
+          <span>Max Area Found</span>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // --- Main Setup ---
+      const ctx = document.querySelector("canvas").getContext("2d");
+      const size = 20;
+      let arr = [];
+      const time_delay = 400;
+      const max_bar_height = 20;
+      let nextSmaller = [],
+        prevSmaller = [],
+        areas = [];
+      let maxArea = 0,
+        maxAreaIndex = -1;
+
+      const theme = {
+        primary: getComputedStyle(document.documentElement)
+          .getPropertyValue("--primary-color")
+          .trim(),
+        bar: getComputedStyle(document.documentElement)
+          .getPropertyValue("--bar-color")
+          .trim(),
+        highlight: getComputedStyle(document.documentElement)
+          .getPropertyValue("--highlight-color")
+          .trim(),
+      };
+
+      // --- Data Initialization ---
+      function initializeData() {
+        arr = [];
+        for (let i = 0; i < size; i++) {
+          arr.push(Math.floor(Math.random() * max_bar_height) + 1);
+        }
+
+        // Calculate Next Smaller Left (prevSmaller)
+        let stack = [];
+        for (let i = 0; i < size; i++) {
+          while (stack.length > 0 && arr[stack[stack.length - 1]] >= arr[i])
+            stack.pop();
+          prevSmaller[i] = stack.length === 0 ? -1 : stack[stack.length - 1];
+          stack.push(i);
+        }
+
+        // Calculate Next Smaller Right (nextSmaller)
+        stack = [];
+        for (let i = size - 1; i >= 0; i--) {
+          while (stack.length > 0 && arr[stack[stack.length - 1]] >= arr[i])
+            stack.pop();
+          nextSmaller[i] = stack.length === 0 ? size : stack[stack.length - 1];
+          stack.push(i);
+        }
+
+        // Calculate areas and find max
+        maxArea = 0;
+        for (let i = 0; i < size; i++) {
+          const width = nextSmaller[i] - prevSmaller[i] - 1;
+          areas[i] = width * arr[i];
+          if (areas[i] > maxArea) {
+            maxArea = areas[i];
+            maxAreaIndex = i;
+          }
+        }
+      }
+
+      // --- Drawing Functions ---
+      function render(highlightIndex = -1, finalHighlight = false) {
+        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        const barWidth = ctx.canvas.width / size;
+        const unitHeight = ctx.canvas.height / (max_bar_height + 2);
+
+        // Draw base histogram
+        for (let i = 0; i < size; i++) {
+          const barHeight = arr[i] * unitHeight;
+          const x = i * barWidth;
+          const y = ctx.canvas.height - barHeight;
+          ctx.fillStyle = theme.bar;
+          ctx.fillRect(x, y, barWidth - 2, barHeight);
+        }
+
+        // Draw highlighted area
+        if (highlightIndex !== -1) {
+          const height = arr[highlightIndex] * unitHeight;
+          const width =
+            (nextSmaller[highlightIndex] - prevSmaller[highlightIndex] - 1) *
+            barWidth;
+          const x = (prevSmaller[highlightIndex] + 1) * barWidth;
+          const y = ctx.canvas.height - height;
+
+          ctx.globalAlpha = 0.6;
+          ctx.fillStyle = finalHighlight ? theme.primary : theme.highlight;
+          ctx.fillRect(x, y, width - 2, height);
+          ctx.globalAlpha = 1.0;
+        }
+      }
+
+      // --- Main Visualization Logic ---
+      async function visualize() {
+        const button = document.querySelector(".visualise");
+        button.disabled = true;
+        const maxAreaEl = document.getElementById("max-area");
+        let currentMaxArea = 0;
+
+        for (let i = 0; i < size; i++) {
+          render(i);
+          if (areas[i] > currentMaxArea) {
+            currentMaxArea = areas[i];
+            maxAreaEl.textContent = currentMaxArea;
+          }
+          await sleep(time_delay);
+        }
+
+        // Final highlight of the max area
+        render(maxAreaIndex, true);
+        maxAreaEl.textContent = maxArea;
+      }
+
+      function sleep(ms) {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+      }
+
+      function init() {
+        initializeData();
+        render();
+        document
+          .querySelector(".visualise")
+          .addEventListener("click", visualize);
+      }
+
+      init();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Stack - DSA Verse</title>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      /* --- Global Styles & Resets (Consistent with other pages) --- */
+      :root {
+        --primary-color: #4ade80;
+        --dark-bg: #111827;
+        --light-dark-bg: #1f2937;
+        --card-bg: rgba(31, 41, 55, 0.5);
+        --text-color: #e5e7eb;
+        --border-color: rgba(255, 255, 255, 0.1);
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        font-family: "Poppins", sans-serif;
+        background: linear-gradient(
+          135deg,
+          var(--light-dark-bg),
+          var(--dark-bg)
+        );
+        color: var(--text-color);
+        min-height: 100vh;
+        overflow-x: hidden; /* Prevent horizontal scroll */
+      }
+
+      /* --- Custom Scrollbar --- */
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: var(--dark-bg);
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--primary-color);
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #36a166;
+      }
+
+      /* --- Main Content Layout --- */
+      #main-content {
+        padding: 3rem 1.5rem;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      /* --- Page Header with Back Link --- */
+      .page-header {
+        text-align: center;
+        margin-bottom: 4rem;
+      }
+      .back-link {
+        text-decoration: none;
+      }
+      .heading {
+        font-weight: 700;
+        font-size: clamp(2.5rem, 5vw, 4rem);
+        color: #fff;
+        text-shadow: 0 0 15px rgba(74, 222, 128, 0.6),
+          0 0 25px rgba(74, 222, 128, 0.4);
+        display: inline-block;
+        transition: transform 0.3s ease;
+      }
+      .back-link:hover .heading {
+        transform: scale(1.05);
+      }
+
+      /* --- Grid for Algorithm Cards --- */
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        width: 100%;
+      }
+
+      /* --- Individual Algorithm Card Styling --- */
+      .algo {
+        background: radial-gradient(
+          circle at top left,
+          rgba(31, 41, 55, 0.7),
+          rgba(31, 41, 55, 0.4)
+        );
+        backdrop-filter: blur(12px);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        transition: all 0.3s ease-in-out;
+        min-height: 120px;
+        display: flex;
+        animation: card-fade-in 0.6s ease-out forwards;
+        opacity: 0;
+        animation-delay: calc(var(--card-index) * 50ms);
+      }
+
+      .algo:hover {
+        transform: scale(1.05);
+        box-shadow: 0 0 25px rgba(74, 222, 128, 0.3),
+          0 12px 40px rgba(0, 0, 0, 0.5);
+        border-color: rgba(74, 222, 128, 0.5);
+      }
+
+      .algo__link {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+        padding: 1.5rem;
+        text-decoration: none;
+        color: var(--text-color);
+        font-size: 1.25rem;
+        font-weight: 600;
+        text-align: center;
+        transition: color 0.3s ease;
+      }
+
+      .algo__link:hover {
+        color: var(--primary-color);
+      }
+
+      /* Arrow for hover effect */
+      .algo__link .arrow {
+        margin-left: 10px;
+        opacity: 0;
+        transform: translateX(-10px);
+        transition: opacity 0.3s ease, transform 0.3s ease;
+        font-size: 1.5rem;
+      }
+
+      .algo:hover .algo__link .arrow {
+        opacity: 1;
+        transform: translateX(0);
+      }
+
+      /* Animation for cards fading in */
+      @keyframes card-fade-in {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="main-content">
+      <div class="page-header">
+        <!-- Link back to the main data structures page -->
+        <a href="../datastructures.html" class="back-link">
+          <h1 class="heading">Stack</h1>
+        </a>
+      </div>
+      <div class="grid"></div>
+    </div>
+
+    <script>
+      // Data for stack topics
+      const algo = [
+        { name: "Stack ADT", link: `stack/stack_adt.html` },
+        { name: "Balanced Bracket", link: `stack/balanced_bracket.html` },
+        { name: "Infix to Postfix", link: `stack/infix_to_postfix.html` },
+        { name: "Infix to Prefix", link: `stack/infix_to_prefix.html` },
+        { name: "Postfix evaluation", link: `stack/postfix_evaluation.html` },
+        { name: "Prefix evaluation", link: `stack/prefix_evaluation.html` },
+        { name: "Max Area under histogram", link: "stack/max_area_hist.html" },
+        { name: "Min stack O(1)", link: "stack/min_stack.html" },
+      ];
+
+      // Utility function to initialize and create cards
+      function init() {
+        const grid = document.querySelector(".grid");
+        algo.forEach((e, i) => {
+          const algoCard = document.createElement("div");
+          algoCard.classList.add("algo");
+          algoCard.style.setProperty("--card-index", i);
+
+          const cardContentHTML = `
+					<a href="${e.link}" class="algo__link">
+						${e.name}
+						<span class="arrow">&rarr;</span>
+					</a>
+				`;
+
+          algoCard.innerHTML = cardContentHTML;
+          grid.appendChild(algoCard);
+        });
+      }
+
+      // Run the function when the page loads
+      init();
+    </script>
+  </body>
+</html>

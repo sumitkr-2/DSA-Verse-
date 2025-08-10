@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Time Complexity - DSA Verse</title>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Roboto+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      /* --- Global Styles & Resets --- */
+      :root {
+        --primary-color: #4ade80;
+        --dark-bg: #111827;
+        --light-dark-bg: #1f2937;
+        --card-bg: rgba(31, 41, 55, 0.5);
+        --text-color: #d1d5db; /* Slightly lighter for better reading */
+        --heading-color: #e5e7eb;
+        --border-color: rgba(255, 255, 255, 0.1);
+        --code-bg: #1e293b;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        font-family: "Poppins", sans-serif;
+        background: linear-gradient(
+          135deg,
+          var(--light-dark-bg),
+          var(--dark-bg)
+        );
+        color: var(--text-color);
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
+
+      /* --- Custom Scrollbar --- */
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: var(--dark-bg);
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--primary-color);
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #36a166;
+      }
+
+      /* --- Main Content Layout --- */
+      #main-content {
+        padding: 3rem 1.5rem;
+        max-width: 900px; /* Optimal width for reading */
+        margin: 0 auto;
+      }
+
+      /* --- Page Header with Back Link --- */
+      .page-header {
+        text-align: center;
+        margin-bottom: 2.5rem;
+      }
+      .back-link {
+        text-decoration: none;
+      }
+      .heading {
+        font-weight: 700;
+        font-size: clamp(2.5rem, 5vw, 3.5rem);
+        color: #fff;
+        text-shadow: 0 0 15px rgba(74, 222, 128, 0.6);
+        display: inline-block;
+        transition: transform 0.3s ease;
+      }
+      .back-link:hover .heading {
+        transform: scale(1.05);
+      }
+
+      /* --- Article Container (Glassmorphism) --- */
+      .article-container {
+        background: var(--card-bg);
+        backdrop-filter: blur(12px);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: clamp(1.5rem, 5vw, 3rem);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      }
+
+      .topic-section {
+        margin-bottom: 3rem;
+      }
+      .topic-section:last-child {
+        margin-bottom: 0;
+      }
+
+      .section-heading {
+        font-size: clamp(1.5rem, 4vw, 2.25rem);
+        font-weight: 600;
+        color: var(--primary-color);
+        padding-bottom: 0.5rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+      }
+      .sub-heading {
+        font-size: clamp(1.25rem, 3vw, 1.75rem);
+        color: var(--heading-color);
+        margin-top: 2.5rem;
+        margin-bottom: 1rem;
+      }
+
+      p.doc {
+        font-size: 1.1rem;
+        line-height: 1.8;
+        margin-bottom: 1.5rem;
+      }
+      p.doc b {
+        color: var(--primary-color);
+        font-weight: 600;
+      }
+
+      .article-image {
+        max-width: 100%;
+        height: auto;
+        border-radius: 12px;
+        margin: 1rem auto;
+        display: block;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      }
+
+      ul.list {
+        list-style-type: "✔  ";
+        padding-left: 2rem;
+        margin: 1.5rem 0;
+        font-size: 1.1rem;
+        line-height: 1.8;
+      }
+      ul.list li {
+        padding-left: 0.5rem;
+        margin-bottom: 0.5rem;
+      }
+
+      /* --- Code Block Styling with Copy Button --- */
+      .code-block-wrapper {
+        position: relative;
+        margin: 1.5rem 0;
+      }
+      pre {
+        background: var(--code-bg);
+        padding: 1.5rem;
+        color: var(--text-color);
+        border-radius: 12px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        white-space: pre-wrap; /* Wrap long lines */
+        word-wrap: break-word;
+        font-family: "Roboto Mono", monospace;
+        font-size: 0.95rem;
+        border: 1px solid var(--border-color);
+      }
+      .copy-btn {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        background: rgba(255, 255, 255, 0.1);
+        color: var(--text-color);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 0.3rem 0.6rem;
+        font-family: "Poppins", sans-serif;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+      .copy-btn:hover {
+        background: var(--primary-color);
+        color: var(--dark-bg);
+      }
+      .copy-btn.copied {
+        background: #22c55e; /* A slightly different green */
+        color: #fff;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="main-content">
+      <div class="page-header">
+        <a href="../algorithms.html" class="back-link">
+          <h1 class="heading">Time Complexity</h1>
+        </a>
+      </div>
+
+      <div class="article-container">
+        <section class="topic-section">
+          <h2 class="section-heading">
+            What's Time Complexity & Why Do We Need It?
+          </h2>
+          <img class="article-image" alt="survey" src="../images/survey.gif" />
+          <p class="doc">
+            Let's try to understand this by taking an example of a civil
+            engineer. When a civil engineer does a survey, they need to take
+            care of certain standard parameters. Suppose they are asked to tell
+            whether the given <b>cement mixture</b> being used at a construction
+            site is good or not. They will check parameters like
+            <b>water ratio, aggregate ratio, sand ratio</b>, etc. <br /><br />
+            But when we talk about a <b>Computer Science Engineer</b>, their job
+            is to do a survey on the code. So, if a software engineer is asked
+            whether a given piece of code is good or not, how would they tell?
+            The answer to this question is <b>Time and Space Complexity</b>.
+          </p>
+          <img
+            class="article-image"
+            alt="time_space_complexity"
+            src="../images/time_space_complexity.png"
+          />
+          <p class="doc">
+            <b>Definition:</b> Time complexity of an algorithm quantifies the
+            amount of time taken by an algorithm to run as a function of the
+            length of the input. Similarly, Space complexity quantifies the
+            amount of space or memory taken by an algorithm to run as a function
+            of the length of the input.
+          </p>
+        </section>
+
+        <section class="topic-section">
+          <h2 class="section-heading">Asymptotic Notations</h2>
+          <p class="doc">
+            We use three main asymptotic notations to describe the running time
+            of an algorithm.
+          </p>
+
+          <div class="notation-section">
+            <h3 class="sub-heading">1. Big-Θ (Big-Theta) notation</h3>
+            <p class="doc">
+              Let's look at a simple implementation of linear search:
+            </p>
+            <div class="code-block-wrapper">
+              <pre>
+var doLinearSearch = function(array, targetValue) {
+  for (var guess = 0; guess < array.length; guess++) {
+    if (array[guess] === targetValue) { 
+        return guess;  // found it!
+    }
+  }
+  return -1;  // didn't find it
+};</pre
+              >
+            </div>
+            <p class="doc">
+              Let's denote the size of the array (array.length) by <i>n</i>. The
+              maximum number of times the for-loop can run is <i>n</i>, and this
+              worst case occurs when the value being searched for is not in the
+              array. Each time the loop iterates, it does a constant amount of
+              work. Therefore, the total time for linear search in the worst
+              case is <i>c₁⋅n + c₂</i>.
+            </p>
+            <p class="doc">
+              When we use Big-Θ notation, we are saying that we have an
+              <b>asymptotically tight bound</b> on the running time. We drop
+              constant factors and lower-order terms. For linear search, we say
+              the worst-case running time is <b>Θ(n)</b>. This means that for a
+              large enough <i>n</i>, the running time is sandwiched between
+              <i>k₁⋅n</i> and <i>k₂⋅n</i>.
+            </p>
+            <img
+              src="../images/time_thetha_1.png"
+              alt="theta"
+              class="article-image"
+            />
+          </div>
+
+          <div class="notation-section">
+            <h3 class="sub-heading">2. Big-O (Big-Oh) Notation</h3>
+            <p class="doc">
+              Sometimes, we only want to bound the running time from above. We
+              use Big-O notation for this. If a running time is <i>O(f(n))</i>,
+              then for a large enough <i>n</i>, the running time is
+              <b>at most</b> <i>k⋅f(n)</i> for some constant <i>k</i>. This
+              gives an <b>asymptotic upper bound</b>.
+            </p>
+            <img src="../images/big_oh.png" alt="Big O" class="article-image" />
+            <p class="doc">
+              For example, the running time of binary search is always
+              <i>O(log n)</i> because it never performs worse than logarithmic
+              time. However, in the best case, it can be <i>Θ(1)</i>. Since
+              <i>O(log n)</i> covers all cases, it's a correct (though sometimes
+              not tight) bound.
+            </p>
+          </div>
+
+          <div class="notation-section">
+            <h3 class="sub-heading">3. Big-Ω (Big-Omega) Notation</h3>
+            <p class="doc">
+              When we want to say that an algorithm takes <b>at least</b> a
+              certain amount of time, we use Big-Ω notation. If a running time
+              is <i>Ω(f(n))</i>, then for a large enough <i>n</i>, the running
+              time is at least <i>k⋅f(n)</i>. This provides an
+              <b>asymptotic lower bound</b>.
+            </p>
+            <img
+              src="../images/big_ohm.png"
+              alt="Big Omega"
+              class="article-image"
+            />
+            <p class="doc">
+              For example, any algorithm that must look at every element in an
+              array of size <i>n</i> will have a running time of at least
+              <i>Ω(n)</i>. This notation is useful for proving that an algorithm
+              is optimal.
+            </p>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <script>
+      // --- Add Copy Button Functionality ---
+      function addCopyButtons() {
+        const codeBlocks = document.querySelectorAll(".code-block-wrapper pre");
+        codeBlocks.forEach((block) => {
+          const wrapper = block.parentElement;
+          const copyButton = document.createElement("button");
+          copyButton.className = "copy-btn";
+          copyButton.textContent = "Copy";
+          wrapper.appendChild(copyButton);
+
+          copyButton.addEventListener("click", () => {
+            const codeToCopy = block.textContent;
+            navigator.clipboard
+              .writeText(codeToCopy)
+              .then(() => {
+                copyButton.textContent = "Copied!";
+                copyButton.classList.add("copied");
+                setTimeout(() => {
+                  copyButton.textContent = "Copy";
+                  copyButton.classList.remove("copied");
+                }, 2000);
+              })
+              .catch((err) => {
+                console.error("Failed to copy text: ", err);
+                copyButton.textContent = "Error";
+              });
+          });
+        });
+      }
+
+      // --- Run on page load ---
+      addCopyButtons();
+    </script>
+  </body>
+</html>

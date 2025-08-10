@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Knight Tour - DSA Verse</title>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Roboto+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --primary-color: #4ade80;
+        --dark-bg: #111827;
+        --light-dark-bg: #1f2937;
+        --card-bg: rgba(31, 41, 55, 0.5);
+        --text-color: #e5e7eb;
+        --border-color: rgba(255, 255, 255, 0.1);
+        --button-bg: #4ade80;
+        --button-text: #111827;
+        --button-bg-disabled: #4b5563;
+        --button-text-disabled: #9ca3af;
+        --canvas-bg: #1f2937;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        font-family: "Poppins", sans-serif;
+        background: linear-gradient(
+          135deg,
+          var(--light-dark-bg),
+          var(--dark-bg)
+        );
+        color: var(--text-color);
+        min-height: 100vh;
+        text-align: center;
+      }
+      #main-content {
+        max-width: 1050px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+      }
+      .back-link {
+        text-decoration: none;
+      }
+      .heading {
+        font-weight: 700;
+        font-size: clamp(2.5rem, 5vw, 3.5rem);
+        color: #fff;
+        text-shadow: 0 0 15px rgba(74, 222, 128, 0.6);
+        transition: transform 0.3s ease;
+      }
+      .back-link:hover .heading {
+        transform: scale(1.05);
+      }
+
+      .canvas-container {
+        background: var(--card-bg);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 1rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        margin-bottom: 2rem;
+      }
+      .grid {
+        background: var(--canvas-bg);
+        border-radius: 12px;
+        display: block;
+        margin: 0 auto;
+      }
+      .buttons-container {
+        display: flex;
+        justify-content: center;
+        gap: 1.3rem;
+        margin-bottom: 2.2rem;
+      }
+      button {
+        background-color: var(--button-bg);
+        color: var(--button-text);
+        border: none;
+        padding: 0.75rem 2rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+      button:disabled {
+        background-color: var(--button-bg-disabled);
+        color: var(--button-text-disabled);
+        cursor: not-allowed;
+      }
+      button:hover:not(:disabled) {
+        transform: scale(1.05);
+        box-shadow: 0 4px 20px rgba(74, 222, 128, 0.3);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="main-content">
+      <a href="../backtracking.html" class="back-link"
+        ><div class="heading">Knight Tour</div>
+      </a>
+      <div class="canvas-container">
+        <canvas class="grid" width="1000" height="550"></canvas>
+      </div>
+      <div class="buttons-container">
+        <button class="knight">Knight Tour</button>
+        <button class="path" disabled>Draw Path</button>
+        <button class="solution">Solution</button>
+      </div>
+    </div>
+    <script>
+      // Main
+      let ctx = document.querySelector("canvas").getContext("2d");
+      size = 5;
+      pw = ctx.canvas.width / size;
+      ph = ctx.canvas.height / size;
+      time_delay = 100;
+      let knightImage = new Image();
+      knightImage.src = "../../images/knight.png";
+      let board = [];
+      count = 0;
+      dont_delete = false;
+      solution = [];
+      init();
+
+      // Utility
+      function init() {
+        for (let i = 0; i < size; i++) {
+          let temp = [];
+          for (let j = 0; j < size; j++) {
+            temp.push(0);
+          }
+          board.push(temp);
+        }
+        create_grid();
+        add_listeners();
+      }
+
+      function create_grid() {
+        for (let i = 0; i < size; i++) {
+          for (let j = 0; j < size; j++) {
+            ctx.beginPath();
+            ctx.fillStyle = (i + j) % 2 ? "white" : "black";
+            ctx.fillRect(j * pw, i * ph, pw, ph);
+            ctx.closePath();
+          }
+        }
+        knightImage.onload = () => {
+          ctx.drawImage(knightImage, 10, 0, pw - 10, ph);
+        };
+      }
+
+      function add_listeners() {
+        document.querySelector(".knight").addEventListener("click", () => {
+          solution.push([0, 0]);
+          async function get() {
+            await knightTour(0, 0, 0);
+            document.querySelector(".path").disabled = false;
+          }
+          document.querySelector(".solution").disabled = true;
+          get();
+        });
+
+        document.querySelector(".solution").addEventListener("click", () => {
+          document.querySelector(".knight").disabled = true;
+          document.querySelector(".solution").disabled = true;
+          solution = [];
+          for (let i = 0; i < size * size; i++) {
+            solution.push(0);
+          }
+          dont_delete = true;
+          let arr = [
+            [0, 13, 8, 19, 2],
+            [23, 18, 1, 14, 9],
+            [12, 7, 24, 3, 20],
+            [17, 22, 5, 10, 15],
+            [6, 11, 16, 21, 4],
+          ];
+          temp = [];
+          for (let i = 0; i < size; i++) {
+            for (let j = 0; j < size; j++) {
+              solution[arr[i][j]] = [i, j];
+            }
+          }
+
+          for (let i = solution.length - 1; i > -1; i--) {
+            temp.push(solution[i]);
+          }
+          async function get() {
+            while (temp.length != 0) {
+              i = temp[temp.length - 1][0];
+              j = temp[temp.length - 1][1];
+              await sleep(time_delay).then(() => {
+                ctx.drawImage(knightImage, 10 + j * pw, i * ph, pw - 10, ph);
+              });
+              await sleep(time_delay).then(() => {
+                ctx.fillStyle = (i + j) % 2 ? "black" : "white";
+                ctx.font = "bolder 20px arial";
+                ctx.fillText(arr[i][j], j * pw + pw / 2, i * ph + ph / 2);
+              });
+              temp.pop();
+            }
+            document.querySelector(".path").disabled = false;
+          }
+          get();
+        });
+
+        document.querySelector(".path").addEventListener("click", () => {
+          document.querySelector(".path").disabled = true;
+          for (let i = 0; i < Math.floor((solution.length - 1) / 2); i++) {
+            temp = solution[i];
+            solution[i] = solution[solution.length - 1 - i];
+            solution[solution.length - 1 - i] = temp;
+          }
+
+          async function geet() {
+            while (solution.length != 1) {
+              await sleep(time_delay).then(() => {
+                ctx.beginPath();
+                y1 = solution[solution.length - 1][0];
+                x1 = solution[solution.length - 1][1];
+                solution.pop();
+                y2 = solution[solution.length - 1][0];
+                x2 = solution[solution.length - 1][1];
+                ctx.lineWidth = 5;
+                ctx.strokeStyle = "red";
+                ctx.moveTo(x1 * pw + pw / 2, y1 * ph + ph / 2);
+                ctx.lineTo(x2 * pw + pw / 2, y2 * ph + ph / 2);
+                ctx.stroke();
+                ctx.closePath();
+              });
+            }
+          }
+
+          geet();
+        });
+      }
+
+      function sleep(ms) {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+      }
+
+      function is_valid(i, j) {
+        if (i < 0 || i >= size) return false;
+        if (j < 0 || j >= size) return false;
+        if (board[i][j]) return false;
+        return true;
+      }
+      async function knightTour(i, j, done) {
+        if (done == size * size) {
+          console.log(done);
+          dont_delete = true;
+          return;
+        }
+        if (dont_delete) return;
+        let stack = [];
+        ctx.drawImage(knightImage, 10 + i * pw, j * ph, pw - 10, ph);
+        board[i][j] = 1;
+        t = [
+          [2, 1],
+          [2, -1],
+          [-2, 1],
+          [-2, -1],
+          [-1, 2],
+          [1, 2],
+          [-1, -2],
+          [1, -2],
+        ];
+        t.forEach((e) => {
+          if (is_valid(i + e[0], j + e[1])) {
+            stack.push([i + e[0], j + e[1]]);
+          }
+        });
+        while (stack.length != 0) {
+          await sleep(time_delay).then(() => {});
+          ctx.fillStyle = (i + j) % 2 ? "white" : "black";
+          ctx.fillRect(i * pw, j * ph, pw, ph);
+          ctx.font = "bold 20px arial";
+          ctx.fillStyle = (i + j) % 2 ? "black" : "white";
+          ctx.fillText(done, i * pw + pw / 2, j * ph + ph / 2);
+          solution.push([
+            stack[stack.length - 1][0],
+            stack[stack.length - 1][1],
+          ]);
+          await knightTour(
+            stack[stack.length - 1][0],
+            stack[stack.length - 1][1],
+            done + 1
+          );
+          await sleep(time_delay).then(() => {
+            ctx.fillStyle = (i + j) % 2 ? "white" : "black";
+            ctx.fillRect(i * pw, j * ph, pw, ph);
+          });
+          solution.pop();
+          stack.pop();
+        }
+        await sleep(time_delay).then(() => {
+          ctx.fillStyle = (i + j) % 2 ? "white" : "black";
+          ctx.fillRect(i * pw, j * ph, pw, ph);
+          ctx.font = "bold 20px arial";
+          ctx.fillStyle = (i + j) % 2 ? "black" : "white";
+          ctx.fillText(done, i * pw + pw / 2, j * ph + ph / 2);
+        });
+
+        board[i][j] = 0;
+      }
+    </script>
+  </body>
+</html>

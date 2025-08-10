@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Prefix Sum - DSA Verse</title>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      :root {
+        --primary-color: #4ade80;
+        --dark-bg: #111827;
+        --light-dark-bg: #1f2937;
+        --card-bg: rgba(31, 41, 55, 0.5);
+        --text-color: #e5e7eb;
+        --border-color: rgba(255, 255, 255, 0.1);
+        --sum-color: #3b82f6; /* Blue for prefix sum */
+        --highlight-color: #facc15; /* Yellow for highlight */
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        font-family: "Poppins", sans-serif;
+        background: linear-gradient(
+          135deg,
+          var(--light-dark-bg),
+          var(--dark-bg)
+        );
+        color: var(--text-color);
+        min-height: 100vh;
+        overflow: hidden;
+        text-align: center;
+      }
+
+      #main-content {
+        padding: 3rem 1.5rem;
+        max-width: 1050px;
+        margin: 0 auto;
+      }
+      .page-header {
+        text-align: center;
+        margin-bottom: 2.5rem;
+      }
+      .back-link {
+        text-decoration: none;
+      }
+      .heading {
+        font-weight: 700;
+        font-size: clamp(2.5rem, 5vw, 3.5rem);
+        color: #fff;
+        text-shadow: 0 0 15px rgba(74, 222, 128, 0.6);
+        transition: transform 0.3s ease;
+      }
+      .back-link:hover .heading {
+        transform: scale(1.05);
+      }
+
+      .canvas-container {
+        background: var(--card-bg);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 1rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        margin-bottom: 2rem;
+      }
+      .grid {
+        width: 100%;
+        height: auto;
+        border-radius: 8px;
+      }
+
+      .controls-panel {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 1rem;
+      }
+      .controls-panel input {
+        background: var(--dark-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 0.75rem;
+        color: var(--text-color);
+        font-family: "Poppins", sans-serif;
+        font-size: 1rem;
+        width: 100px;
+        text-align: center;
+      }
+      .control-btn {
+        background-color: var(--primary-color);
+        color: var(--dark-bg);
+        border: none;
+        padding: 0.75rem 2rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+      .control-btn:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 20px rgba(74, 222, 128, 0.3);
+      }
+      .control-btn:disabled {
+        background-color: #4b5563;
+        cursor: not-allowed;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="main-content">
+      <div class="page-header">
+        <a href="../datastructures.html" class="back-link"
+          ><h1 class="heading">Prefix Sum</h1></a
+        >
+      </div>
+      <div class="canvas-container">
+        <canvas class="grid" width="1000" height="350"></canvas>
+      </div>
+      <div class="controls-panel">
+        <label for="num1">From Index:</label>
+        <input type="number" id="num1" value="2" />
+        <label for="num2">To Index:</label>
+        <input type="number" id="num2" value="7" />
+        <button class="control-btn prefix_sum">Calculate Sum</button>
+      </div>
+    </div>
+
+    <script>
+      const ctx = document.querySelector("canvas").getContext("2d");
+      let arr = [];
+      let prefixSumArray = [];
+      const size = 10;
+      const time_delay = 500;
+      const per_width = (ctx.canvas.width - 20) / size;
+
+      const theme = {
+        primary: getComputedStyle(document.documentElement)
+          .getPropertyValue("--primary-color")
+          .trim(),
+        sum: getComputedStyle(document.documentElement)
+          .getPropertyValue("--sum-color")
+          .trim(),
+        highlight: getComputedStyle(document.documentElement)
+          .getPropertyValue("--highlight-color")
+          .trim(),
+        text: getComputedStyle(document.documentElement)
+          .getPropertyValue("--text-color")
+          .trim(),
+        dark: getComputedStyle(document.documentElement)
+          .getPropertyValue("--dark-bg")
+          .trim(),
+        cardBg: "#374151",
+      };
+
+      function initialize_array() {
+        arr = [];
+        for (let i = 0; i < size; i++) {
+          arr.push(Math.floor(Math.random() * 21));
+        }
+      }
+
+      function calculatePrefixSum() {
+        prefixSumArray = [0];
+        let sum = 0;
+        for (let i = 0; i < size; i++) {
+          sum += arr[i];
+          prefixSumArray.push(sum);
+        }
+      }
+
+      function render(highlightIndices = []) {
+        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
+        const draw = (data, y, color, label, highlight) => {
+          const gap = 3;
+          const rectHeight = 60;
+          // Draw Label
+          ctx.fillStyle = theme.text;
+          ctx.textAlign = "left";
+          ctx.font = "600 16px Poppins";
+          ctx.fillText(label, 10, y - 20);
+
+          // Draw Array
+          data.forEach((val, i) => {
+            let bgColor =
+              highlight && highlight.includes(i) ? theme.highlight : color;
+            let textColor =
+              highlight && highlight.includes(i) ? theme.dark : theme.text;
+
+            ctx.fillStyle = bgColor;
+            ctx.fillRect(
+              i * (per_width - 2) + gap * i + 10,
+              y,
+              per_width,
+              rectHeight
+            );
+
+            ctx.fillStyle = textColor;
+            ctx.font = "600 20px Poppins";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(
+              val,
+              i * (per_width - 2) + gap * i + 10 + per_width / 2,
+              y + rectHeight / 2
+            );
+          });
+        };
+
+        draw(
+          arr,
+          60,
+          theme.cardBg,
+          "Original Array:",
+          highlightIndices.original
+        );
+        draw(
+          prefixSumArray,
+          180,
+          theme.sum,
+          "Prefix Sum Array:",
+          highlightIndices.prefix
+        );
+      }
+
+      async function animateCalculation(num1, num2) {
+        const button = document.querySelector(".prefix_sum");
+        button.disabled = true;
+
+        // Highlight the range in the original array and relevant prefix sum cells
+        let originalHighlights = [];
+        for (let i = num1; i <= num2; i++) originalHighlights.push(i);
+        render({ original: originalHighlights, prefix: [num2 + 1, num1] });
+
+        await sleep(time_delay * 2);
+
+        // Show the calculation
+        ctx.font = "700 24px Poppins";
+        ctx.textAlign = "center";
+        ctx.fillStyle = theme.text;
+        const calculationText = `Sum = PrefixSum[${
+          num2 + 1
+        }] - PrefixSum[${num1}]`;
+        ctx.fillText(calculationText, ctx.canvas.width / 2, 290);
+
+        await sleep(time_delay * 2);
+
+        const valuesText = `= ${prefixSumArray[num2 + 1]} - ${
+          prefixSumArray[num1]
+        }`;
+        ctx.fillText(valuesText, ctx.canvas.width / 2, 320);
+
+        await sleep(time_delay * 2);
+
+        const result = prefixSumArray[num2 + 1] - prefixSumArray[num1];
+        ctx.fillStyle = theme.primary;
+        ctx.fillText(`= ${result}`, ctx.canvas.width / 2, 350);
+
+        button.disabled = false;
+      }
+
+      function sleep(ms) {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+      }
+
+      function init() {
+        initialize_array();
+        calculatePrefixSum();
+        render();
+
+        document.querySelector(".prefix_sum").addEventListener("click", () => {
+          render(); // Clear previous calculation drawings
+          const num1 = +document.querySelector("#num1").value;
+          const num2 = +document.querySelector("#num2").value;
+
+          if (num1 >= num2) {
+            alert("Start index must be less than end index.");
+            return;
+          } else if (num1 < 0 || num2 >= size) {
+            alert(`Indices must be between 0 and ${size - 1}.`);
+            return;
+          }
+
+          animateCalculation(num1, num2);
+        });
+      }
+
+      init();
+    </script>
+  </body>
+</html>

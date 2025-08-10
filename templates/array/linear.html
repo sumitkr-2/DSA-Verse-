@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Linear Search - DSA Verse</title>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      :root {
+        --primary-color: #4ade80;
+        --dark-bg: #111827;
+        --light-dark-bg: #1f2937;
+        --card-bg: rgba(31, 41, 55, 0.5);
+        --text-color: #e5e7eb;
+        --border-color: rgba(255, 255, 255, 0.1);
+        --search-color: #f87171; /* Red for searching element */
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        font-family: "Poppins", sans-serif;
+        background: linear-gradient(
+          135deg,
+          var(--light-dark-bg),
+          var(--dark-bg)
+        );
+        color: var(--text-color);
+        min-height: 100vh;
+        overflow: hidden;
+        text-align: center;
+      }
+
+      #main-content {
+        padding: 3rem 1.5rem;
+        max-width: 1050px;
+        margin: 0 auto;
+      }
+      .page-header {
+        text-align: center;
+        margin-bottom: 2.5rem;
+      }
+      .back-link {
+        text-decoration: none;
+      }
+      .heading {
+        font-weight: 700;
+        font-size: clamp(2.5rem, 5vw, 3.5rem);
+        color: #fff;
+        text-shadow: 0 0 15px rgba(74, 222, 128, 0.6);
+        transition: transform 0.3s ease;
+      }
+      .back-link:hover .heading {
+        transform: scale(1.05);
+      }
+
+      .canvas-container {
+        background: var(--card-bg);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 1rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        margin-bottom: 2rem;
+      }
+      .grid {
+        width: 100%;
+        height: auto;
+        border-radius: 8px;
+      }
+
+      .controls-panel {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 2rem;
+      }
+      .key__search {
+        background: var(--dark-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 0.75rem;
+        color: var(--text-color);
+        font-family: "Poppins", sans-serif;
+        font-size: 1rem;
+        width: 100px;
+        text-align: center;
+      }
+      .control-btn {
+        background-color: var(--primary-color);
+        color: var(--dark-bg);
+        border: none;
+        padding: 0.75rem 2rem;
+        border-radius: 50px;
+        font-family: "Poppins", sans-serif;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+      .control-btn:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 20px rgba(74, 222, 128, 0.3);
+      }
+      .control-btn:disabled {
+        background-color: #4b5563;
+        cursor: not-allowed;
+      }
+
+      /* Legend / Color Key */
+      .legend {
+        display: flex;
+        justify-content: center;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+      }
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .legend-color {
+        width: 20px;
+        height: 20px;
+        border-radius: 4px;
+        border: 1px solid var(--border-color);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="main-content">
+      <div class="page-header">
+        <a href="../datastructures.html" class="back-link"
+          ><h1 class="heading">Linear Search</h1></a
+        >
+      </div>
+      <div class="canvas-container">
+        <canvas class="grid" width="1000" height="200"></canvas>
+      </div>
+      <div class="controls-panel">
+        <input
+          type="number"
+          name="search_element"
+          class="key__search"
+          value="0"
+        />
+        <button class="control-btn arr__search">Search</button>
+      </div>
+      <div class="legend">
+        <div class="legend-item">
+          <div
+            class="legend-color"
+            style="background-color: var(--search-color)"
+          ></div>
+          <span>Searching</span>
+        </div>
+        <div class="legend-item">
+          <div
+            class="legend-color"
+            style="background-color: var(--primary-color)"
+          ></div>
+          <span>Found</span>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // --- Main Setup ---
+      let arr = [];
+      const max = 100;
+      const time_delay = 400;
+      const size = 16;
+
+      const canvas = document.querySelector("canvas");
+      const ctx = canvas.getContext("2d");
+      const rect = { width: 60, height: 40 };
+
+      // --- Utility Functions ---
+      function randomize_an_array() {
+        arr = [];
+        for (let i = 0; i < size; i++) {
+          arr[i] = Math.floor(Math.random() * max + 1);
+        }
+      }
+
+      function clearCanvas() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+
+      function animate(searchingIndex = -1, foundIndex = -1) {
+        clearCanvas();
+        const theme = {
+          primary: getComputedStyle(document.documentElement)
+            .getPropertyValue("--primary-color")
+            .trim(),
+          searching: getComputedStyle(document.documentElement)
+            .getPropertyValue("--search-color")
+            .trim(),
+          text: getComputedStyle(document.documentElement)
+            .getPropertyValue("--text-color")
+            .trim(),
+          dark: getComputedStyle(document.documentElement)
+            .getPropertyValue("--dark-bg")
+            .trim(),
+          cardBg: "rgba(255, 255, 255, 0.1)",
+        };
+
+        arr.forEach((e, i) => {
+          let bgColor, textColor;
+          if (i === foundIndex) {
+            bgColor = theme.primary;
+            textColor = theme.dark;
+          } else if (i === searchingIndex) {
+            bgColor = theme.searching;
+            textColor = theme.text;
+          } else {
+            bgColor = theme.cardBg;
+            textColor = theme.text;
+          }
+
+          // Draw array element box
+          ctx.fillStyle = bgColor;
+          ctx.fillRect(
+            i * rect.width + 5,
+            canvas.height / 2 - rect.height,
+            rect.width,
+            rect.height
+          );
+
+          // Draw array element value
+          ctx.fillStyle = textColor;
+          ctx.font = "600 15px Poppins";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(
+            `${e}`,
+            i * rect.width + 5 + rect.width / 2,
+            canvas.height / 2 - rect.height / 2
+          );
+        });
+
+        // Draw indices
+        for (let i = 0; i < size; i++) {
+          ctx.fillStyle = theme.primary;
+          ctx.font = "600 14px Poppins";
+          ctx.textAlign = "center";
+          ctx.fillText(
+            `${i}`,
+            i * rect.width + 5 + rect.width / 2,
+            canvas.height / 2 + 20
+          );
+        }
+        ctx.fillStyle = theme.text;
+        ctx.textAlign = "left";
+        ctx.fillText("Index:", 5, canvas.height / 2 + 50);
+      }
+
+      async function traverse(key) {
+        let found = false;
+        for (let i = 0; i < size && !found; i++) {
+          if (arr[i] === key) {
+            animate(i, i);
+            found = true;
+          } else {
+            animate(i, -1);
+          }
+          await sleep(time_delay);
+        }
+        if (!found) {
+          alert("Element not found");
+          animate(-1, -1); // Reset colors
+        }
+        document.querySelector(".arr__search").disabled = false; // Re-enable button
+      }
+
+      function add_listeners() {
+        document.querySelector(".arr__search").addEventListener("click", () => {
+          const key = +document.querySelector(".key__search").value;
+          document.querySelector(".arr__search").disabled = true;
+          traverse(key);
+        });
+      }
+
+      function sleep(ms) {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+      }
+
+      // --- Initialize Page ---
+      function init() {
+        randomize_an_array();
+        animate();
+        add_listeners();
+      }
+
+      init();
+    </script>
+  </body>
+</html>

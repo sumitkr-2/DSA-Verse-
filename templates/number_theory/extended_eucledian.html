@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Extended Euclidean</title>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <!-- Modern fonts for glassy UI -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --primary-color: #4ade80;
+        --dark-bg: #111827;
+        --light-dark-bg: #1f2937;
+        --card-bg: rgba(31, 41, 55, 0.5);
+        --text-color: #e5e7eb;
+        --border-color: rgba(255, 255, 255, 0.1);
+        --danger: #f43f5e;
+      }
+      html,
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: "Poppins", sans-serif;
+        background: linear-gradient(
+          135deg,
+          var(--light-dark-bg),
+          var(--dark-bg)
+        );
+        color: var(--text-color);
+        min-height: 100vh;
+        text-align: center;
+        overflow-x: hidden;
+      }
+      .back-link {
+        text-decoration: none;
+      }
+      .heading {
+        font-weight: 700;
+        font-size: clamp(2.5rem, 5vw, 3.5rem);
+        color: #fff;
+        text-shadow: 0 0 15px rgba(74, 222, 128, 0.6);
+        transition: transform 0.3s ease;
+      }
+      .back-link:hover .heading {
+        transform: scale(1.05);
+      }
+      p:nth-child(1) {
+        padding: 24px 0 16px 0;
+        text-align: center;
+        font-family: "Poppins", sans-serif;
+        font-weight: 700;
+        font-size: clamp(2rem, 4vw, 2.7rem);
+        text-transform: uppercase;
+        color: #fff;
+        text-shadow: 0 0 15px rgba(74, 222, 128, 0.6),
+          0 0 25px rgba(74, 222, 128, 0.4);
+        letter-spacing: 2px;
+        animation: float 3s ease-in-out infinite;
+      }
+      @keyframes float {
+        0% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-10px);
+        }
+        100% {
+          transform: translateY(0);
+        }
+      }
+      .canvas-container {
+        background: var(--card-bg);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        margin: 32px auto 24px auto;
+        width: 100%;
+        max-width: 1050px;
+        padding: 1.5rem 0.5rem 2rem 0.5rem;
+      }
+      .grid {
+        background: transparent;
+        border-radius: 8px;
+        display: block;
+        margin: 0 auto;
+        width: 1000px;
+        height: 400px;
+        max-width: 100%;
+        max-height: 400px;
+      }
+      .controls-panel {
+        margin-top: 32px;
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+      }
+      button.evaluate {
+        background-color: var(--primary-color);
+        color: var(--dark-bg);
+        border: none;
+        padding: 0 36px;
+        border-radius: 50px;
+        font-family: "Poppins", sans-serif;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(74, 222, 128, 0.2);
+        height: 44px;
+        letter-spacing: 1px;
+      }
+      button.evaluate:hover {
+        transform: scale(1.05) translateY(-2px);
+        box-shadow: 0 8px 25px rgba(74, 222, 128, 0.4);
+      }
+      button.evaluate:disabled {
+        opacity: 0.65;
+        cursor: not-allowed;
+      }
+      @media (max-width: 800px) {
+        .canvas-container {
+          padding: 0.7rem 0.2rem 1.2rem 0.2rem;
+        }
+        .controls-panel {
+          flex-direction: column;
+          gap: 0.7rem;
+        }
+        button.evaluate {
+          width: 90%;
+          min-width: 120px;
+        }
+        .grid {
+          width: 98vw !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <a href="../number_theory.html" class="back-link"
+      ><p>Extended Euclidean</p></a
+    >
+    <div class="canvas-container">
+      <canvas class="grid" width="1000" height="400"></canvas>
+    </div>
+    <div class="controls-panel">
+      <button class="evaluate">Evaluate</button>
+    </div>
+    <script>
+      // Helper: Draw rounded rectangle for glassy effect
+      function drawRoundRect(ctx, x, y, w, h, r, fill, stroke, shadow = false) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.lineTo(x + w - r, y);
+        ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+        ctx.lineTo(x + w, y + h - r);
+        ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+        ctx.lineTo(x + r, y + h);
+        ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+        ctx.lineTo(x, y + r);
+        ctx.quadraticCurveTo(x, y, x + r, y);
+        ctx.closePath();
+        if (shadow) {
+          ctx.shadowColor = "rgba(74,222,128,0.18)";
+          ctx.shadowBlur = 14;
+          ctx.shadowOffsetX = 0;
+          ctx.shadowOffsetY = 4;
+        }
+        if (fill) {
+          ctx.fillStyle = fill;
+          ctx.fill();
+        }
+        if (stroke) {
+          ctx.strokeStyle = stroke;
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      // Main
+      let ctx = document.querySelector("canvas").getContext("2d");
+      let a = Math.floor(Math.random() * (101 - 1) + 1);
+      let b = Math.floor(Math.random() * (101 - 1) + 1);
+      let time_delay = 500;
+      if (a < b) {
+        let temp = a;
+        a = b;
+        b = temp;
+      }
+      let d;
+      init();
+
+      // Utility
+      async function create_rectangle(i, x, y, d, t = false) {
+        let number = 15;
+        let height = ctx.canvas.height / (number + 1);
+
+        // Card glassy background
+        let yPos = i * height + 10;
+        let w = ctx.canvas.width - 40;
+        let xPos = 20;
+        let r = 16;
+
+        if (t) {
+          // Step card
+          drawRoundRect(
+            ctx,
+            xPos,
+            yPos,
+            w,
+            height - 8,
+            r,
+            "rgba(74,222,128,0.13)",
+            "#4ade80",
+            true
+          );
+          ctx.font = "bold 16px 'Poppins', sans-serif";
+          ctx.fillStyle = "#fff";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(
+            `${b} × (${Math.floor(a / b)}) + ${a % b} = ${a}`,
+            ctx.canvas.width / 2,
+            yPos + (height - 8) / 2
+          );
+          return;
+        }
+        if (i == 0) {
+          // Header card
+          drawRoundRect(
+            ctx,
+            xPos,
+            yPos,
+            w,
+            height - 8,
+            r,
+            "rgba(244,63,94,0.18)",
+            "#f43f5e",
+            true
+          );
+          ctx.font = "bold 18px 'Poppins', sans-serif";
+          ctx.fillStyle = "#fff";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(
+            `${a} × X + ${b} × Y = gcd(a, b)`,
+            ctx.canvas.width / 2,
+            yPos + (height - 8) / 2
+          );
+        } else {
+          // Result card
+          drawRoundRect(
+            ctx,
+            xPos,
+            yPos,
+            w,
+            height - 8,
+            r,
+            "rgba(31,41,55,0.88)",
+            "#4ade80",
+            true
+          );
+          ctx.font = "bold 15px 'Poppins', sans-serif";
+          ctx.fillStyle = "#fff";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(
+            `${a} × (${x}) + ${b} × (${y}) = ${d}`,
+            ctx.canvas.width / 2,
+            yPos + (height - 8) / 2
+          );
+        }
+      }
+
+      async function extended_gcd(i, a, b, x) {
+        if (b == 0) {
+          x[0] = 1;
+          x[1] = 0;
+          return a;
+        }
+        let x1 = [1, 1];
+        let t = [];
+        t.push(i[0] + 1);
+        await sleep(time_delay)
+          .then(() => {
+            d = extended_gcd(t, b, a % b, x1);
+            return d;
+          })
+          .then((res) => {
+            x[0] = x1[1];
+            x[1] = x1[0] - x1[1] * Math.floor(a / b);
+            create_rectangle(i[0], x[0], x[1], res);
+          });
+        return d;
+      }
+
+      async function gcd(i, a, b) {
+        if (b == 0) {
+          return a;
+        }
+        await sleep(time_delay).then(() => {
+          create_rectangle(i[0], a, b, 1, true);
+        });
+        i[0]++;
+        return gcd(i, b, a % b);
+      }
+
+      async function init() {
+        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        await create_rectangle(0);
+        add_listeners();
+      }
+
+      function clearResultArea() {
+        ctx.clearRect(0, ctx.canvas.height - 50, ctx.canvas.width, 50);
+      }
+
+      function showFinalResult(p) {
+        clearResultArea();
+        let y = ctx.canvas.height - 40;
+        let h = 36;
+        let x = 20;
+        let w = ctx.canvas.width - 40;
+        let r = 16;
+        drawRoundRect(
+          ctx,
+          x,
+          y,
+          w,
+          h,
+          r,
+          "rgba(251,191,36,0.18)",
+          "#fbbf24",
+          true
+        );
+        ctx.font = "bold 17px 'Poppins', sans-serif";
+        ctx.fillStyle = "#f43f5e";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(
+          `X = ${p[0]}      Y = ${p[1]}`,
+          ctx.canvas.width / 2,
+          y + h / 2
+        );
+      }
+
+      function add_listeners() {
+        document.querySelector(".evaluate").addEventListener("click", () => {
+          document.querySelector(".evaluate").disabled = true;
+          ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+          async function get() {
+            let p = [0, 0];
+            let m = a,
+              n = b;
+            let d = a,
+              e = b;
+            let i = [1];
+            await gcd(i, d, e);
+            a = m;
+            b = n;
+            await extended_gcd(i, m, n, p);
+            await sleep(time_delay).then(() => {
+              showFinalResult(p);
+            });
+            document.querySelector(".evaluate").disabled = false;
+          }
+          get();
+        });
+      }
+
+      function sleep(ms) {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+      }
+    </script>
+  </body>
+</html>

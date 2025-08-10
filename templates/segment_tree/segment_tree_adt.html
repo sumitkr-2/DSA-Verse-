@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Segment Trees</title>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --primary-color: #4ade80;
+        --dark-bg: #111827;
+        --light-dark-bg: #1f2937;
+        --card-bg: rgba(31, 41, 55, 0.5);
+        --text-color: #e5e7eb;
+        --border-color: rgba(255, 255, 255, 0.1);
+        --yellow: #fbbf24;
+      }
+      html,
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: "Poppins", sans-serif;
+        background: linear-gradient(
+          135deg,
+          var(--light-dark-bg),
+          var(--dark-bg)
+        );
+        color: var(--text-color);
+        min-height: 100vh;
+        text-align: center;
+        overflow-x: hidden;
+      }
+      p:nth-child(1) {
+        padding: 24px 0 16px 0;
+        text-align: center;
+        font-family: "Poppins", sans-serif;
+        font-weight: 700;
+        font-size: clamp(2rem, 4vw, 2.7rem);
+        text-transform: uppercase;
+        color: #fff;
+        text-shadow: 0 0 15px rgba(74, 222, 128, 0.6),
+          0 0 25px rgba(74, 222, 128, 0.4);
+        letter-spacing: 2px;
+        animation: float 3s ease-in-out infinite;
+      }
+      @keyframes float {
+        0% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-10px);
+        }
+        100% {
+          transform: translateY(0);
+        }
+      }
+      .canvas-container {
+        background: var(--card-bg);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        margin: 32px auto 24px auto;
+        width: 100%;
+        max-width: 1100px;
+        padding: 1.5rem 0.5rem 2rem 0.5rem;
+        position: relative;
+      }
+      .grid {
+        background: transparent;
+        border-radius: 8px;
+        display: block;
+        margin: 0 auto;
+        width: 1000px;
+        height: 550px;
+        max-width: 100%;
+        max-height: 550px;
+      }
+      .controllers {
+        margin: 0 auto;
+        margin-bottom: 1.5rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 1.2rem;
+        flex-wrap: wrap;
+      }
+      .controllers > input {
+        width: 90px;
+        padding: 8px 10px;
+        border-radius: 11px;
+        font-family: "Poppins", sans-serif;
+        font-size: 1.1rem;
+        border: 1.5px solid var(--primary-color);
+        background: rgba(31, 41, 55, 0.7);
+        color: #fff;
+        outline: none;
+        box-shadow: 0 1px 4px rgba(74, 222, 128, 0.1);
+        transition: border 0.2s;
+        height: 44px;
+      }
+      .controllers > input:focus {
+        border-color: var(--yellow);
+      }
+      .controllers > button {
+        background-color: var(--primary-color);
+        color: var(--dark-bg);
+        border: none;
+        padding: 0 28px;
+        border-radius: 50px;
+        font-family: "Poppins", sans-serif;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(74, 222, 128, 0.2);
+        height: 44px;
+        letter-spacing: 1px;
+      }
+      .controllers > button:hover {
+        transform: scale(1.05) translateY(-2px);
+        box-shadow: 0 8px 25px rgba(74, 222, 128, 0.4);
+      }
+      .controllers > button:disabled {
+        opacity: 0.65;
+        cursor: not-allowed;
+      }
+      .get {
+        background: var(--card-bg);
+        color: var(--yellow);
+        border-radius: 14px;
+        font-size: 1.1rem;
+        font-weight: 700;
+        padding: 8px 22px;
+        border: 2px solid var(--yellow);
+        margin-right: 18px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      @media (max-width: 800px) {
+        .canvas-container {
+          padding: 0.7rem 0.2rem 1.2rem 0.2rem;
+        }
+        .controllers {
+          flex-direction: column;
+          gap: 0.7rem;
+        }
+        .grid {
+          width: 98vw !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <p>Segment Trees</p>
+    <div class="canvas-container">
+      <canvas class="grid" width="1000" height="550"></canvas>
+    </div>
+    <div class="controllers">
+      <span class="get"
+        ><span>Sum: &nbsp;&nbsp;</span><span class="sum_value">0</span></span
+      >
+      <input type="number" class="min" min="0" max="6" placeholder="L" />
+      <input type="number" class="max" min="0" max="6" placeholder="R" />
+      <button class="add">Add 1</button>
+      <button class="sum">Get Sum</button>
+    </div>
+    <script>
+      // Helper: Draw rounded rectangle for glassy effect
+      function drawRoundRect(ctx, x, y, w, h, r, fill, stroke, shadow = false) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.lineTo(x + w - r, y);
+        ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+        ctx.lineTo(x + w, y + h - r);
+        ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+        ctx.lineTo(x + r, y + h);
+        ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+        ctx.lineTo(x, y + r);
+        ctx.quadraticCurveTo(x, y, x + r, y);
+        ctx.closePath();
+        if (shadow) {
+          ctx.shadowColor = "#4ade80";
+          ctx.shadowBlur = 12;
+        }
+        ctx.fillStyle = fill;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        if (stroke) {
+          ctx.strokeStyle = stroke;
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      // Segment Tree Implementation
+      class SegmentTree {
+        constructor(arr) {
+          this.n = arr.length;
+          this.size = 1;
+          while (this.size < this.n) this.size <<= 1;
+          this.tree = Array(this.size * 2).fill(0);
+          this.build(arr);
+        }
+        build(arr) {
+          for (let i = 0; i < this.n; i++) this.tree[this.size + i] = arr[i];
+          for (let i = this.size - 1; i > 0; i--)
+            this.tree[i] = this.tree[i * 2] + this.tree[i * 2 + 1];
+        }
+        rangeSum(l, r) {
+          l += this.size;
+          r += this.size;
+          let res = 0;
+          while (l <= r) {
+            if (l % 2 === 1) res += this.tree[l++];
+            if (r % 2 === 0) res += this.tree[r--];
+            l >>= 1;
+            r >>= 1;
+          }
+          return res;
+        }
+        pointAdd(idx, val) {
+          idx += this.size;
+          this.tree[idx] += val;
+          while (idx > 1) {
+            idx >>= 1;
+            this.tree[idx] = this.tree[idx * 2] + this.tree[idx * 2 + 1];
+          }
+        }
+      }
+
+      // Main
+      let ctx = document.querySelector("canvas").getContext("2d");
+      let arr = [];
+      let size = 7;
+      let st = null;
+      let highlightRange = null;
+      let highlightNodes = [];
+
+      function init() {
+        arr = [];
+        for (let i = 0; i < size; i++) {
+          arr.push(Math.floor(Math.random() * 10 + 1));
+        }
+        st = new SegmentTree(arr);
+        highlightRange = null;
+        highlightNodes = [];
+        drawAll();
+        document.querySelector(".add").onclick = handleAdd;
+        document.querySelector(".sum").onclick = handleSum;
+      }
+
+      function handleAdd() {
+        let l = +document.querySelector(".min").value;
+        let r = +document.querySelector(".max").value;
+        if (isNaN(l) || isNaN(r) || l < 0 || r >= size || l > r) {
+          alert("Range is incorrect");
+          return;
+        }
+        for (let i = l; i <= r; i++) {
+          arr[i]++;
+          st.pointAdd(i, 1);
+        }
+        highlightRange = [l, r];
+        highlightNodes = [];
+        drawAll();
+        setTimeout(() => {
+          highlightRange = null;
+          drawAll();
+        }, 800);
+      }
+
+      function handleSum() {
+        let l = +document.querySelector(".min").value;
+        let r = +document.querySelector(".max").value;
+        if (isNaN(l) || isNaN(r) || l < 0 || r >= size || l > r) {
+          alert("Range is incorrect");
+          return;
+        }
+        highlightRange = [l, r];
+        highlightNodes = [];
+        let sum = queryVisual(1, 0, size - 1, l, r);
+        document.querySelector(".sum_value").textContent = sum;
+        setTimeout(() => {
+          highlightRange = null;
+          highlightNodes = [];
+          drawAll();
+        }, 1200);
+      }
+
+      function queryVisual(node, nodeL, nodeR, qL, qR) {
+        // Visualize traversal
+        let mid = Math.floor((nodeL + nodeR) / 2);
+        if (qL > nodeR || qR < nodeL) return 0;
+        highlightNodes.push([node, nodeL, nodeR]);
+        drawAll();
+        if (qL <= nodeL && nodeR <= qR) {
+          return st.tree[node + st.size - 1] || st.tree[node];
+        }
+        let left = queryVisual(node * 2, nodeL, mid, qL, qR);
+        let right = queryVisual(node * 2 + 1, mid + 1, nodeR, qL, qR);
+        return left + right;
+      }
+
+      function drawAll() {
+        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        drawArray();
+        drawSegmentTree();
+      }
+
+      function drawArray() {
+        let pw = ctx.canvas.width / size;
+        let h = 50;
+        let y = ctx.canvas.height - h - 60;
+        for (let i = 0; i < size; i++) {
+          let x = i * pw + 8;
+          let highlight =
+            highlightRange && i >= highlightRange[0] && i <= highlightRange[1];
+          drawRoundRect(
+            ctx,
+            x,
+            y,
+            pw - 16,
+            h,
+            15,
+            highlight ? "#fbbf24" : "#222",
+            "#4ade80",
+            true
+          );
+          ctx.font = "bold 22px Poppins, sans-serif";
+          ctx.fillStyle = highlight ? "#f43f5e" : "#fff";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(arr[i], x + (pw - 16) / 2, y + h / 2 - 2);
+          // Index
+          ctx.font = "bold 15px Poppins, sans-serif";
+          ctx.fillStyle = "#fbbf24";
+          ctx.fillText(i, x + (pw - 16) / 2, y + h - 12);
+        }
+      }
+
+      function drawSegmentTree() {
+        // Draw tree as layers (level by level)
+        let levels = Math.ceil(Math.log2(size)) + 1;
+        let rootX = ctx.canvas.width / 2;
+        let rootY = 60;
+        let nodeW = 56,
+          nodeH = 36,
+          yGap = 70;
+        let positions = {};
+
+        function drawNode(node, l, r, level, x, y) {
+          if (l > r || node >= st.tree.length) return;
+          let highlight = highlightNodes.some(
+            ([n, nl, nr]) => n === node && nl === l && nr === r
+          );
+          let fill = highlight ? "#fbbf24" : "#222";
+          let stroke = highlight ? "#f43f5e" : "#4ade80";
+          drawRoundRect(
+            ctx,
+            x - nodeW / 2,
+            y,
+            nodeW,
+            nodeH,
+            13,
+            fill,
+            stroke,
+            true
+          );
+          ctx.font = "bold 18px Poppins, sans-serif";
+          ctx.fillStyle = highlight ? "#f43f5e" : "#fff";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(
+            st.rangeSum ? st.rangeSum(l, r) : st.tree[node],
+            x,
+            y + nodeH / 2 - 2
+          );
+          ctx.font = "bold 13px Poppins, sans-serif";
+          ctx.fillStyle = "#fbbf24";
+          ctx.fillText(`[${l},${r}]`, x, y + nodeH - 7);
+
+          positions[node] = [x, y + nodeH / 2];
+          if (l === r) return;
+          let mid = Math.floor((l + r) / 2);
+          let leftX = x - 180 / (level + 1);
+          let rightX = x + 180 / (level + 1);
+          let nextY = y + yGap;
+          // Lines
+          ctx.save();
+          ctx.strokeStyle = "#4ade80";
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.moveTo(x, y + nodeH);
+          ctx.lineTo(leftX, nextY);
+          ctx.moveTo(x, y + nodeH);
+          ctx.lineTo(rightX, nextY);
+          ctx.stroke();
+          ctx.restore();
+          drawNode(node * 2, l, mid, level + 1, leftX, nextY);
+          drawNode(node * 2 + 1, mid + 1, r, level + 1, rightX, nextY);
+        }
+        drawNode(1, 0, size - 1, 0, rootX, rootY);
+      }
+
+      window.onload = init;
+    </script>
+  </body>
+</html>

@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>H Tree - DSA Verse</title>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --primary-color: #4ade80;
+        --dark-bg: #111827;
+        --light-dark-bg: #1f2937;
+        --card-bg: rgba(31, 41, 55, 0.5);
+        --text-color: #e5e7eb;
+        --border-color: rgba(255, 255, 255, 0.1);
+        --danger: #f43f5e;
+        --yellow: #fbbf24;
+      }
+      html,
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: "Poppins", sans-serif;
+        background: linear-gradient(
+          135deg,
+          var(--light-dark-bg),
+          var(--dark-bg)
+        );
+        color: var(--text-color);
+        min-height: 100vh;
+        text-align: center;
+        overflow-x: hidden;
+      }
+      p:nth-child(1) {
+        padding: 24px 0 16px 0;
+        text-align: center;
+        font-family: "Poppins", sans-serif;
+        font-weight: 700;
+        font-size: clamp(2rem, 4vw, 2.7rem);
+        text-transform: uppercase;
+        color: #fff;
+        text-shadow: 0 0 15px rgba(74, 222, 128, 0.6),
+          0 0 25px rgba(74, 222, 128, 0.4);
+        letter-spacing: 2px;
+        animation: float 3s ease-in-out infinite;
+      }
+      @keyframes float {
+        0% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-10px);
+        }
+        100% {
+          transform: translateY(0);
+        }
+      }
+      .canvas-container {
+        background: var(--card-bg);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        margin: 32px auto 24px auto;
+        width: 100%;
+        max-width: 1050px;
+        padding: 1.5rem 0.5rem 2rem 0.5rem;
+        position: relative;
+      }
+      .grid {
+        background: transparent;
+        border-radius: 8px;
+        display: block;
+        margin: 0 auto;
+        width: 1000px;
+        height: 500px;
+        max-width: 100%;
+        max-height: 500px;
+      }
+      .controls-panel {
+        margin-top: 24px;
+        display: flex;
+        justify-content: center;
+        gap: 1.5rem;
+      }
+      button {
+        background-color: var(--primary-color);
+        color: var(--dark-bg);
+        border: none;
+        padding: 0 44px;
+        border-radius: 50px;
+        font-family: "Poppins", sans-serif;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(74, 222, 128, 0.2);
+        height: 44px;
+        letter-spacing: 1px;
+        margin: 0 10px;
+        display: inline-block;
+      }
+      button:hover {
+        transform: scale(1.05) translateY(-2px);
+        box-shadow: 0 8px 25px rgba(74, 222, 128, 0.4);
+      }
+      button:disabled {
+        opacity: 0.65;
+        cursor: not-allowed;
+      }
+      .back-link {
+        text-decoration: none;
+      }
+      .heading {
+        font-weight: 700;
+        font-size: clamp(2.5rem, 5vw, 3.5rem);
+        color: #fff;
+        text-shadow: 0 0 15px rgba(74, 222, 128, 0.6);
+        transition: transform 0.3s ease;
+      }
+      .back-link:hover .heading {
+        transform: scale(1.05);
+      }
+      @media (max-width: 800px) {
+        .canvas-container {
+          padding: 0.7rem 0.2rem 1.2rem 0.2rem;
+        }
+        .controls-panel {
+          flex-direction: column;
+          gap: 0.7rem;
+        }
+        button {
+          width: 90%;
+          min-width: 120px;
+        }
+        .grid {
+          width: 98vw !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <a href="../recursion.html" class="back-link"><p>H Tree</p></a>
+    <div class="canvas-container">
+      <canvas class="grid" width="1000" height="500"></canvas>
+    </div>
+    <div class="controls-panel">
+      <button class="btn_generate">Generate Tree</button>
+      <button class="btn_generate_simple">Generate Simple Tree</button>
+    </div>
+    <script>
+      // Helper: Glassy line (for branches)
+      function drawGlassyLine(
+        ctx,
+        x1,
+        y1,
+        x2,
+        y2,
+        color,
+        width = 3,
+        shadow = true
+      ) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = width;
+        if (shadow) {
+          ctx.shadowColor = color;
+          ctx.shadowBlur = 12;
+        }
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // Helper: Glassy circle (for leaves)
+      function drawGlassyCircle(ctx, x, y, r, color) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, 2 * Math.PI);
+        ctx.fillStyle = color;
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 18;
+        ctx.fill();
+        ctx.restore();
+      }
+
+      // H-Tree recursive
+      function drawHTree(x, y, len, depth, maxDepth, colorBranch, colorLeaf) {
+        if (depth > maxDepth || len < 8) return;
+        let half = len / 2;
+        // Draw H
+        drawGlassyLine(
+          ctx,
+          x - half,
+          y,
+          x + half,
+          y,
+          colorBranch,
+          4 + maxDepth - depth
+        );
+        drawGlassyLine(
+          ctx,
+          x - half,
+          y - half,
+          x - half,
+          y + half,
+          colorBranch,
+          4 + maxDepth - depth
+        );
+        drawGlassyLine(
+          ctx,
+          x + half,
+          y - half,
+          x + half,
+          y + half,
+          colorBranch,
+          4 + maxDepth - depth
+        );
+
+        if (depth === maxDepth || len < 16) {
+          drawGlassyCircle(ctx, x - half, y - half, 7, colorLeaf);
+          drawGlassyCircle(ctx, x - half, y + half, 7, colorLeaf);
+          drawGlassyCircle(ctx, x + half, y - half, 7, colorLeaf);
+          drawGlassyCircle(ctx, x + half, y + half, 7, colorLeaf);
+          return;
+        }
+
+        // Recursively draw 4 sub H-trees at the ends
+        drawHTree(
+          x - half,
+          y - half,
+          len / Math.sqrt(2),
+          depth + 1,
+          maxDepth,
+          colorBranch,
+          colorLeaf
+        );
+        drawHTree(
+          x - half,
+          y + half,
+          len / Math.sqrt(2),
+          depth + 1,
+          maxDepth,
+          colorBranch,
+          colorLeaf
+        );
+        drawHTree(
+          x + half,
+          y - half,
+          len / Math.sqrt(2),
+          depth + 1,
+          maxDepth,
+          colorBranch,
+          colorLeaf
+        );
+        drawHTree(
+          x + half,
+          y + half,
+          len / Math.sqrt(2),
+          depth + 1,
+          maxDepth,
+          colorBranch,
+          colorLeaf
+        );
+      }
+
+      // Simple binary tree (like fractal)
+      function drawSimpleTree(
+        x,
+        y,
+        len,
+        angle,
+        branchWidth,
+        branchColor,
+        leafColor
+      ) {
+        ctx.save();
+        ctx.strokeStyle = branchColor;
+        ctx.lineWidth = branchWidth;
+        ctx.translate(x, y);
+        ctx.rotate((angle * Math.PI) / 180);
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(0, -len);
+        ctx.stroke();
+        if (len < 25) {
+          drawGlassyCircle(ctx, 0, -len, 7, leafColor);
+          ctx.restore();
+          return;
+        }
+        let a = Math.floor(Math.random() * (20 - 5) + 5);
+        let d = 0.75;
+        drawSimpleTree(
+          0,
+          -len,
+          len * d,
+          angle + a,
+          branchWidth * 0.6,
+          branchColor,
+          leafColor
+        );
+        drawSimpleTree(
+          0,
+          -len,
+          len * d,
+          angle - a,
+          branchWidth * 0.6,
+          branchColor,
+          leafColor
+        );
+        ctx.restore();
+      }
+
+      // Main
+      let ctx = document.querySelector("canvas").getContext("2d");
+      let btn = document.querySelector(".btn_generate");
+      let btnSimple = document.querySelector(".btn_generate_simple");
+
+      function randomColor() {
+        return `rgb(${Math.floor(Math.random() * 200 + 55)},${Math.floor(
+          Math.random() * 200 + 55
+        )},${Math.floor(Math.random() * 200 + 55)})`;
+      }
+
+      function clearAndDrawHTree() {
+        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        let maxDepth = Math.floor(Math.random() * 2) + 4; // 4 or 5
+        let branchColor = randomColor();
+        let leafColor = randomColor();
+        drawHTree(
+          ctx.canvas.width / 2,
+          ctx.canvas.height / 2,
+          150,
+          1,
+          3,
+          branchColor,
+          leafColor
+        );
+      }
+
+      function clearAndDrawSimpleTree() {
+        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        drawSimpleTree(
+          ctx.canvas.width / 2,
+          ctx.canvas.height - 20,
+          120,
+          0,
+          10,
+          "#4ade80",
+          "#fbbf24"
+        );
+      }
+
+      function init() {
+        clearAndDrawHTree();
+        btn.addEventListener("click", clearAndDrawHTree);
+        btnSimple.addEventListener("click", clearAndDrawSimpleTree);
+      }
+
+      window.onload = init;
+    </script>
+  </body>
+</html>

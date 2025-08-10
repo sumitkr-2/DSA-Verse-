@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Kadanes 2D - DSA Verse</title>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --primary-color: #4ade80;
+        --dark-bg: #111827;
+        --light-dark-bg: #1f2937;
+        --card-bg: rgba(31, 41, 55, 0.5);
+        --text-color: #e5e7eb;
+        --border-color: rgba(255, 255, 255, 0.1);
+        --danger: #f43f5e;
+        --yellow: #fbbf24;
+      }
+      html,
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: "Poppins", sans-serif;
+        background: linear-gradient(
+          135deg,
+          var(--light-dark-bg),
+          var(--dark-bg)
+        );
+        color: var(--text-color);
+        min-height: 100vh;
+        text-align: center;
+        overflow-x: hidden;
+      }
+      p:nth-child(1) {
+        padding: 24px 0 16px 0;
+        text-align: center;
+        font-family: "Poppins", sans-serif;
+        font-weight: 700;
+        font-size: clamp(2rem, 4vw, 2.7rem);
+        text-transform: uppercase;
+        color: #fff;
+        text-shadow: 0 0 15px rgba(74, 222, 128, 0.6),
+          0 0 25px rgba(74, 222, 128, 0.4);
+        letter-spacing: 2px;
+        animation: float 3s ease-in-out infinite;
+      }
+      @keyframes float {
+        0% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-10px);
+        }
+        100% {
+          transform: translateY(0);
+        }
+      }
+      .canvas-container {
+        background: var(--card-bg);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        margin: 32px auto 24px auto;
+        width: 100%;
+        max-width: 1200px;
+        padding: 1.5rem 0.5rem 2rem 0.5rem;
+      }
+      .grid {
+        background: transparent;
+        border-radius: 8px;
+        display: block;
+        margin: 0 auto;
+        width: 1100px;
+        height: 550px;
+        max-width: 100%;
+        max-height: 550px;
+      }
+      .controls-panel {
+        margin-top: 32px;
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+      }
+      button.visualise {
+        background-color: var(--primary-color);
+        color: var(--dark-bg);
+        border: none;
+        padding: 0 44px;
+        border-radius: 50px;
+        font-family: "Poppins", sans-serif;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(74, 222, 128, 0.2);
+        height: 44px;
+        letter-spacing: 1px;
+        margin: 0 auto;
+        display: block;
+      }
+      button.visualise:hover {
+        transform: scale(1.05) translateY(-2px);
+        box-shadow: 0 8px 25px rgba(74, 222, 128, 0.4);
+      }
+      button.visualise:disabled {
+        opacity: 0.65;
+        cursor: not-allowed;
+      }
+      .back-link {
+        text-decoration: none;
+      }
+      .heading {
+        font-weight: 700;
+        font-size: clamp(2.5rem, 5vw, 3.5rem);
+        color: #fff;
+        text-shadow: 0 0 15px rgba(74, 222, 128, 0.6);
+        transition: transform 0.3s ease;
+      }
+      .back-link:hover .heading {
+        transform: scale(1.05);
+      }
+      @media (max-width: 800px) {
+        .canvas-container {
+          padding: 0.7rem 0.2rem 1.2rem 0.2rem;
+        }
+        .controls-panel {
+          flex-direction: column;
+          gap: 0.7rem;
+        }
+        button.visualise {
+          width: 90%;
+          min-width: 120px;
+        }
+        .grid {
+          width: 98vw !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <a href="../matrix.html" class="back-link"><p>Kadanes 2D</p></a>
+    <div class="canvas-container">
+      <canvas class="grid" width="1100" height="550"></canvas>
+    </div>
+    <div class="controls-panel">
+      <button class="visualise">Visualise</button>
+    </div>
+    <script>
+      // Helper: Draw rounded rectangle for glassy effect
+      function drawRoundRect(ctx, x, y, w, h, r, fill, stroke, shadow = false) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.lineTo(x + w - r, y);
+        ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+        ctx.lineTo(x + w, y + h - r);
+        ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+        ctx.lineTo(x + r, y + h);
+        ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+        ctx.lineTo(x, y + r);
+        ctx.quadraticCurveTo(x, y, x + r, y);
+        ctx.closePath();
+        if (shadow) {
+          ctx.shadowColor = "rgba(74,222,128,0.18)";
+          ctx.shadowBlur = 10;
+          ctx.shadowOffsetX = 0;
+          ctx.shadowOffsetY = 2;
+        }
+        if (fill) {
+          ctx.fillStyle = fill;
+          ctx.fill();
+        }
+        if (stroke) {
+          ctx.strokeStyle = stroke;
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      // Main
+      let ctx = document.querySelector("canvas").getContext("2d");
+      let size = 10;
+      let right = 450;
+      let bottom = 0;
+      let pw = (ctx.canvas.width - right) / size;
+      let ph = (ctx.canvas.height - bottom) / size;
+      let arr = [];
+      let params = [0, 0, 0, 0, 0, 0];
+      let time_delay = 900;
+
+      function init_array() {
+        arr = [];
+        for (let i = 0; i < size; i++) {
+          let temp = [];
+          for (let j = 0; j < size; j++) {
+            let max = 10;
+            let min = -10;
+            let val = Math.floor(Math.random() * (max + 1 - min) + min);
+            temp.push(val);
+          }
+          arr.push(temp);
+        }
+      }
+
+      function draw_matrix(l = -1, r = -1, u = -1, d = -1, highlight = false) {
+        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        // Draw grid
+        for (let i = 0; i < size; i++) {
+          for (let j = 0; j < size; j++) {
+            let x = j * pw + 10,
+              y = i * ph + 10,
+              w = pw - 18,
+              h = ph - 18,
+              rRect = 12;
+            let fill = "#222";
+            let stroke = "#4ade80";
+            if (highlight && j >= l && j <= r && i >= u && i <= d) {
+              fill = "rgba(251,191,36,0.22)";
+              stroke = "#fbbf24";
+            } else if (j >= l && j <= r) {
+              fill = "rgba(74,222,128,0.10)";
+              stroke = "#4ade80";
+            }
+            drawRoundRect(ctx, x, y, w, h, rRect, fill, stroke, true);
+            ctx.font = "bold 18px 'Poppins', sans-serif";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillStyle =
+              highlight && j >= l && j <= r && i >= u && i <= d
+                ? "#f43f5e"
+                : "#fff";
+            ctx.fillText(arr[i][j], x + w / 2, y + h / 2);
+          }
+        }
+        // Matrix label
+        ctx.font = "bold 26px 'Poppins', sans-serif";
+        ctx.fillStyle = "#fff";
+      }
+
+      function draw_sum_array(sumArr) {
+        // Draw sum array on right
+        let gap = 40;
+        let baseX = ctx.canvas.width - right + gap;
+        let baseY = 30;
+        let w = pw - 10,
+          h = ph - 12,
+          rRect = 10;
+        ctx.font = "bold 17px 'Poppins', sans-serif";
+        for (let i = 0; i < size; i++) {
+          let y = baseY + i * (h + 10);
+          drawRoundRect(
+            ctx,
+            baseX,
+            y,
+            w,
+            h,
+            rRect,
+            "rgba(251,191,36,0.18)",
+            "#fbbf24",
+            true
+          );
+          ctx.fillStyle = "#fbbf24";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(sumArr[i], baseX + w / 2, y + h / 2);
+        }
+        ctx.font = "bold 18px 'Poppins', sans-serif";
+        ctx.fillStyle = "#fff";
+        ctx.fillText("Row Sums", baseX + w / 2, baseY - 20);
+      }
+
+      function draw_kadane_array(kadArr, up, down) {
+        // Draw kadane array on right, below sum array
+        let gap = 40;
+        let baseX = ctx.canvas.width - right + gap + 110;
+        let baseY = 30;
+        let w = pw - 10,
+          h = ph - 12,
+          rRect = 10;
+        ctx.font = "bold 17px 'Poppins', sans-serif";
+        for (let i = 0; i < size; i++) {
+          let y = baseY + i * (h + 10);
+          let fill =
+            i >= up && i <= down
+              ? "rgba(74,222,128,0.22)"
+              : "rgba(31,41,55,0.92)";
+          let stroke = i >= up && i <= down ? "#4ade80" : "#fff";
+          drawRoundRect(ctx, baseX, y, w, h, rRect, fill, stroke, true);
+          ctx.fillStyle = i >= up && i <= down ? "#4ade80" : "#fff";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(kadArr[i], baseX + w / 2, y + h / 2);
+        }
+        ctx.font = "bold 18px 'Poppins', sans-serif";
+        ctx.fillStyle = "#fff";
+        ctx.fillText("Kadane", baseX + w / 2, baseY - 20);
+      }
+
+      function draw_parameters(params) {
+        // Draw parameters on right, below arrays
+        let gap = 40;
+        let baseX = ctx.canvas.width - right + gap + 200;
+        let baseY = 370;
+        let w = 200,
+          h = 38,
+          rRect = 12;
+        let s = [
+          "CurrentSum",
+          "MaxSum",
+          "MaxLeft",
+          "MaxRight",
+          "MaxUp",
+          "MaxDown",
+        ];
+        for (let i = 0; i < 6; i++) {
+          drawRoundRect(
+            ctx,
+            baseX,
+            baseY + i * (h + 8),
+            w,
+            h,
+            rRect,
+            "#222",
+            "#4ade80",
+            true
+          );
+          ctx.font = "bold 16px 'Poppins', sans-serif";
+          ctx.fillStyle = "#fff";
+          ctx.textAlign = "left";
+          ctx.fillText(s[i] + ":", baseX + 20, baseY + h / 2 + i * (h + 8));
+          ctx.textAlign = "right";
+          ctx.fillStyle = "#fbbf24";
+          ctx.fillText(params[i], baseX + w - 20, baseY + h / 2 + i * (h + 8));
+        }
+      }
+
+      async function twoDKadanes() {
+        params = [0, -Infinity, 0, 0, 0, 0];
+        for (let left = 0; left < size; left++) {
+          let temp = Array(size).fill(0);
+          for (let right = left; right < size; right++) {
+            for (let row = 0; row < size; row++) temp[row] += arr[row][right];
+            // Draw current state
+            draw_matrix(left, right);
+            draw_sum_array(temp);
+            let [maxSum, up, down] = kadane1D(temp);
+            draw_kadane_array(getKadaneArr(temp), up, down);
+            params[0] = maxSum;
+            if (maxSum > params[1]) {
+              params[1] = maxSum;
+              params[2] = left;
+              params[3] = right;
+              params[4] = up;
+              params[5] = down;
+            }
+            draw_parameters(params);
+            await sleep(time_delay);
+          }
+        }
+      }
+
+      function kadane1D(arr) {
+        let maxSum = arr[0],
+          currSum = arr[0],
+          start = 0,
+          end = 0,
+          tempStart = 0;
+        for (let i = 1; i < arr.length; i++) {
+          if (currSum < 0) {
+            currSum = arr[i];
+            tempStart = i;
+          } else {
+            currSum += arr[i];
+          }
+          if (currSum > maxSum) {
+            maxSum = currSum;
+            start = tempStart;
+            end = i;
+          }
+        }
+        return [maxSum, start, end];
+      }
+
+      function getKadaneArr(arr) {
+        let kad = [];
+        kad[0] = arr[0];
+        for (let i = 1; i < arr.length; i++) {
+          kad[i] = Math.max(arr[i], kad[i - 1] + arr[i]);
+        }
+        return kad;
+      }
+
+      async function final_animate_array(l, r, u, d) {
+        for (let step = 0; step <= 10; step++) {
+          draw_matrix(l, r, u, d, true);
+          draw_parameters(params);
+          await sleep(120);
+        }
+      }
+
+      function sleep(ms) {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+      }
+
+      function add_listeners() {
+        document
+          .querySelector(".visualise")
+          .addEventListener("click", async () => {
+            document.querySelector(".visualise").disabled = true;
+            await twoDKadanes();
+            await final_animate_array(
+              params[2],
+              params[3],
+              params[4],
+              params[5]
+            );
+          });
+      }
+
+      // Init
+      function init() {
+        init_array();
+        add_listeners();
+        draw_matrix();
+      }
+      window.onload = init;
+    </script>
+  </body>
+</html>

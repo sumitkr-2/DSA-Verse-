@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Sorted Matrix Search - DSA Verse</title>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --primary-color: #4ade80;
+        --dark-bg: #111827;
+        --light-dark-bg: #1f2937;
+        --card-bg: rgba(31, 41, 55, 0.5);
+        --text-color: #e5e7eb;
+        --border-color: rgba(255, 255, 255, 0.1);
+        --danger: #f43f5e;
+        --yellow: #fbbf24;
+      }
+      html,
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: "Poppins", sans-serif;
+        background: linear-gradient(
+          135deg,
+          var(--light-dark-bg),
+          var(--dark-bg)
+        );
+        color: var(--text-color);
+        min-height: 100vh;
+        text-align: center;
+        overflow-x: hidden;
+      }
+      p:nth-child(1) {
+        padding: 24px 0 16px 0;
+        text-align: center;
+        font-family: "Poppins", sans-serif;
+        font-weight: 700;
+        font-size: clamp(2rem, 4vw, 2.7rem);
+        text-transform: uppercase;
+        color: #fff;
+        text-shadow: 0 0 15px rgba(74, 222, 128, 0.6),
+          0 0 25px rgba(74, 222, 128, 0.4);
+        letter-spacing: 2px;
+        animation: float 3s ease-in-out infinite;
+      }
+      @keyframes float {
+        0% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-10px);
+        }
+        100% {
+          transform: translateY(0);
+        }
+      }
+      .canvas-container {
+        background: var(--card-bg);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        margin: 32px auto 24px auto;
+        width: 100%;
+        max-width: 1050px;
+        padding: 1.5rem 0.5rem 2rem 0.5rem;
+      }
+      .grid {
+        background: transparent;
+        border-radius: 8px;
+        display: block;
+        margin: 0 auto;
+        width: 1000px;
+        height: 500px;
+        max-width: 100%;
+        max-height: 500px;
+      }
+      .controls-panel {
+        margin-top: 32px;
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+      }
+      .opt {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 1rem;
+        margin-top: 1.5rem;
+      }
+      .opt > button {
+        background-color: var(--primary-color);
+        color: var(--dark-bg);
+        border: none;
+        padding: 0 36px;
+        border-radius: 50px;
+        font-family: "Poppins", sans-serif;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(74, 222, 128, 0.2);
+        height: 44px;
+        letter-spacing: 1px;
+      }
+      .opt > button:hover {
+        transform: scale(1.05) translateY(-2px);
+        box-shadow: 0 8px 25px rgba(74, 222, 128, 0.4);
+      }
+      .opt > button:disabled {
+        opacity: 0.65;
+        cursor: not-allowed;
+      }
+      .opt > input {
+        width: 120px;
+        padding: 10px 18px;
+        font-size: 1.1rem;
+        font-family: "Poppins", sans-serif;
+        background: rgba(31, 41, 55, 0.7);
+        color: #fff;
+        border: 1.5px solid var(--primary-color);
+        border-radius: 12px;
+        outline: none;
+        box-shadow: 0 1px 4px rgba(74, 222, 128, 0.1);
+        transition: border 0.2s;
+        height: 44px;
+      }
+      .opt > input:focus {
+        border-color: #36a166;
+      }
+      .back-link {
+        text-decoration: none;
+      }
+      .heading {
+        font-weight: 700;
+        font-size: clamp(2.5rem, 5vw, 3.5rem);
+        color: #fff;
+        text-shadow: 0 0 15px rgba(74, 222, 128, 0.6);
+        transition: transform 0.3s ease;
+      }
+      .back-link:hover .heading {
+        transform: scale(1.05);
+      }
+      @media (max-width: 800px) {
+        .canvas-container {
+          padding: 0.7rem 0.2rem 1.2rem 0.2rem;
+        }
+        .controls-panel {
+          flex-direction: column;
+          gap: 0.7rem;
+        }
+        .opt {
+          flex-direction: column;
+          gap: 0.7rem;
+        }
+        .grid {
+          width: 98vw !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <a href="../matrix.html" class="back-link"><p>Sorted Matrix Search</p></a>
+    <div class="canvas-container">
+      <canvas class="grid" width="1000" height="500"></canvas>
+    </div>
+    <div class="opt">
+      <input type="number" class="value" value="0" />
+      <button class="find">Find Key</button>
+    </div>
+    <script>
+      // Helper: Draw rounded rectangle for glassy effect
+      function drawRoundRect(ctx, x, y, w, h, r, fill, stroke, shadow = false) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.lineTo(x + w - r, y);
+        ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+        ctx.lineTo(x + w, y + h - r);
+        ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+        ctx.lineTo(x + r, y + h);
+        ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+        ctx.lineTo(x, y + r);
+        ctx.quadraticCurveTo(x, y, x + r, y);
+        ctx.closePath();
+        if (shadow) {
+          ctx.shadowColor = "rgba(74,222,128,0.18)";
+          ctx.shadowBlur = 10;
+          ctx.shadowOffsetX = 0;
+          ctx.shadowOffsetY = 2;
+        }
+        if (fill) {
+          ctx.fillStyle = fill;
+          ctx.fill();
+        }
+        if (stroke) {
+          ctx.strokeStyle = stroke;
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      // Main
+      let time_delay = 500;
+      let ctx = document.querySelector("canvas").getContext("2d");
+      let size = 10;
+      let arr = [];
+      let pw = ctx.canvas.width / size;
+      let ph = ctx.canvas.height / size;
+
+      function init() {
+        arr = [];
+        init_array();
+        draw_array();
+        add_listeners();
+      }
+
+      function init_array() {
+        for (let i = 0; i < size; i++) {
+          let temp = [];
+          let min = i * 20;
+          let max = (i + 1) * 20;
+          for (let j = 0; j < size; j++) {
+            let val = Math.floor(Math.random() * (max - min) + min);
+            temp.push(val);
+          }
+          temp.sort((a, b) => a - b);
+          arr.push(temp);
+        }
+      }
+
+      function draw_array(
+        x1 = 0,
+        x2 = size - 1,
+        y1 = 0,
+        y2 = size - 1,
+        highlightCell = null,
+        foundCell = null
+      ) {
+        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        for (let i = x1; i <= x2; i++) {
+          for (let j = y1; j <= y2; j++) {
+            let x = j * pw + 8,
+              y = i * ph + 8,
+              w = pw - 16,
+              h = ph - 16,
+              r = 13;
+            let fill = "#222",
+              stroke = "#4ade80";
+            if (foundCell && foundCell[0] === i && foundCell[1] === j) {
+              fill = "#fff";
+              stroke = "#f43f5e";
+            } else if (
+              highlightCell &&
+              highlightCell[0] === i &&
+              highlightCell[1] === j
+            ) {
+              fill = "rgba(251,191,36,0.22)";
+              stroke = "#fbbf24";
+            }
+            drawRoundRect(ctx, x, y, w, h, r, fill, stroke, true);
+            ctx.font =
+              foundCell && foundCell[0] === i && foundCell[1] === j
+                ? "bold 25px 'Poppins', sans-serif"
+                : "bold 18px 'Poppins', sans-serif";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillStyle =
+              foundCell && foundCell[0] === i && foundCell[1] === j
+                ? "#f43f5e"
+                : highlightCell &&
+                  highlightCell[0] === i &&
+                  highlightCell[1] === j
+                ? "#fbbf24"
+                : "#fff";
+            ctx.fillText(arr[i][j], x + w / 2, y + h / 2);
+          }
+        }
+      }
+
+      function add_listeners() {
+        document.querySelector(".find").addEventListener("click", () => {
+          let value = +document.querySelector(".value").value;
+          document.querySelector(".find").disabled = true;
+          binarySearch(value);
+        });
+      }
+
+      async function binarySearch(value) {
+        let i = 0,
+          j = size - 1;
+        let found = false;
+        while (i >= 0 && j >= 0 && i < size && j < size) {
+          draw_array(0, size - 1, 0, size - 1, [i, j]);
+          await sleep(time_delay);
+          if (arr[i][j] === value) {
+            draw_array(0, size - 1, 0, size - 1, null, [i, j]);
+            await sleep(time_delay);
+            alert(`Found the element at (${i}, ${j})`);
+            found = true;
+            break;
+          }
+          if (value > arr[i][j]) {
+            i++;
+          } else {
+            j--;
+          }
+        }
+        if (!found) {
+          draw_array();
+          await sleep(time_delay);
+          alert("Element Not Present");
+        }
+        document.querySelector(".find").disabled = false;
+      }
+
+      function sleep(ms) {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+      }
+
+      window.onload = init;
+    </script>
+  </body>
+</html>

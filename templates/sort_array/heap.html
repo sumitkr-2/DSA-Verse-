@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Heap Sort - DSA Verse</title>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Roboto+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      :root {
+        --primary-color: #4ade80; /* Green for sorted */
+        --dark-bg: #111827;
+        --light-dark-bg: #1f2937;
+        --card-bg: rgba(31, 41, 55, 0.5);
+        --text-color: #e5e7eb;
+        --border-color: rgba(255, 255, 255, 0.1);
+        --compare-color: #facc15; /* Yellow for comparing */
+        --bar-color: #4b5563;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        font-family: "Poppins", sans-serif;
+        background: linear-gradient(
+          135deg,
+          var(--light-dark-bg),
+          var(--dark-bg)
+        );
+        color: var(--text-color);
+        min-height: 100vh;
+        overflow: hidden;
+        text-align: center;
+      }
+
+      #main-content {
+        padding: 3rem 1.5rem;
+        max-width: 1050px;
+        margin: 0 auto;
+      }
+      .page-header {
+        text-align: center;
+        margin-bottom: 2.5rem;
+      }
+      .back-link {
+        text-decoration: none;
+      }
+      .heading {
+        font-weight: 700;
+        font-size: clamp(2.5rem, 5vw, 3.5rem);
+        color: #fff;
+        text-shadow: 0 0 15px rgba(74, 222, 128, 0.6);
+        transition: transform 0.3s ease;
+      }
+      .back-link:hover .heading {
+        transform: scale(1.05);
+      }
+
+      .canvas-container {
+        background: var(--card-bg);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 1rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        margin-bottom: 2rem;
+      }
+      .grid {
+        width: 100%;
+        height: auto;
+        border-radius: 8px;
+      }
+
+      .controls-panel {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+      }
+      .control-btn {
+        background-color: var(--primary-color);
+        color: var(--dark-bg);
+        border: none;
+        padding: 0.75rem 2rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+      .control-btn:hover {
+        transform: scale(1.05);
+      }
+      .control-btn:disabled {
+        background-color: #4b5563;
+        cursor: not-allowed;
+      }
+
+      /* Legend */
+      .legend {
+        display: flex;
+        justify-content: center;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+      }
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .legend-color {
+        width: 20px;
+        height: 20px;
+        border-radius: 4px;
+        border: 1px solid var(--border-color);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="main-content">
+      <div class="page-header">
+        <a href="../sort.html" class="back-link"
+          ><h1 class="heading">Heap Sort</h1></a
+        >
+      </div>
+      <div class="canvas-container">
+        <canvas class="grid" width="1000" height="500"></canvas>
+      </div>
+      <div class="controls-panel">
+        <button class="control-btn" id="build-heap-btn">1. Build Heap</button>
+        <button class="control-btn" id="sort-btn" disabled>
+          2. Start Sort
+        </button>
+      </div>
+      <div class="legend">
+        <div class="legend-item">
+          <div
+            class="legend-color"
+            style="background-color: var(--compare-color)"
+          ></div>
+          <span>Comparing</span>
+        </div>
+        <div class="legend-item">
+          <div
+            class="legend-color"
+            style="background-color: var(--primary-color)"
+          ></div>
+          <span>Sorted</span>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // --- Main Setup ---
+      let arr = [];
+      const MAX_VAL = 100;
+      const time_delay = 800;
+      const SIZE = 15;
+      const canvas = document.querySelector("canvas");
+      const ctx = canvas.getContext("2d");
+
+      const theme = {
+        primary: getComputedStyle(document.documentElement)
+          .getPropertyValue("--primary-color")
+          .trim(),
+        compare: getComputedStyle(document.documentElement)
+          .getPropertyValue("--compare-color")
+          .trim(),
+        bar: getComputedStyle(document.documentElement)
+          .getPropertyValue("--bar-color")
+          .trim(),
+        text: getComputedStyle(document.documentElement)
+          .getPropertyValue("--text-color")
+          .trim(),
+        dark: getComputedStyle(document.documentElement)
+          .getPropertyValue("--dark-bg")
+          .trim(),
+      };
+
+      // --- Drawing Functions ---
+      function render(heapSize, highlightIndices = []) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawTree(heapSize, highlightIndices);
+        drawArray(heapSize, highlightIndices);
+      }
+
+      function drawNode(x, y, value, isHighlighted) {
+        const radius = 20;
+        ctx.beginPath();
+        ctx.fillStyle = isHighlighted ? theme.compare : theme.bar;
+        ctx.arc(x, y, radius, 0, 2 * Math.PI);
+        ctx.fill();
+
+        ctx.fillStyle = isHighlighted ? theme.dark : theme.text;
+        ctx.font = "600 16px Poppins";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(value, x, y);
+      }
+
+      function drawTree(heapSize, highlightIndices = []) {
+        const levels = Math.floor(Math.log2(SIZE)) + 1;
+        const levelHeight = 60;
+
+        function drawRecursive(index, x, y, x_offset) {
+          if (index >= heapSize) return;
+
+          const leftChildIndex = 2 * index + 1;
+          const rightChildIndex = 2 * index + 2;
+
+          if (leftChildIndex < heapSize) {
+            const childX = x - x_offset;
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(childX, y + levelHeight);
+            ctx.strokeStyle = theme.text;
+            ctx.stroke();
+            drawRecursive(
+              leftChildIndex,
+              childX,
+              y + levelHeight,
+              x_offset / 2
+            );
+          }
+
+          if (rightChildIndex < heapSize) {
+            const childX = x + x_offset;
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(childX, y + levelHeight);
+            ctx.strokeStyle = theme.text;
+            ctx.stroke();
+            drawRecursive(
+              rightChildIndex,
+              childX,
+              y + levelHeight,
+              x_offset / 2
+            );
+          }
+
+          drawNode(x, y, arr[index], highlightIndices.includes(index));
+        }
+
+        drawRecursive(0, canvas.width / 2, 40, canvas.width / 4);
+      }
+
+      function drawArray(heapSize, highlightIndices) {
+        const y = canvas.height - 80;
+        const barWidth = canvas.width / SIZE;
+
+        for (let i = 0; i < SIZE; i++) {
+          let barColor = theme.bar;
+          if (i >= heapSize) barColor = theme.primary;
+          if (highlightIndices.includes(i)) barColor = theme.compare;
+
+          ctx.fillStyle = barColor;
+          ctx.fillRect(i * barWidth, y, barWidth - 2, 40);
+
+          ctx.fillStyle = highlightIndices.includes(i)
+            ? theme.dark
+            : theme.text;
+          ctx.font = "600 14px 'Roboto Mono'";
+          ctx.textAlign = "center";
+          ctx.fillText(arr[i], i * barWidth + (barWidth - 2) / 2, y + 20);
+        }
+      }
+
+      // --- Sorting Logic ---
+      async function heapify(n, i) {
+        let largest = i;
+        const left = 2 * i + 1;
+        const right = 2 * i + 2;
+
+        render(
+          n,
+          [i, left, right].filter((idx) => idx < n)
+        );
+        await sleep(time_delay);
+
+        if (left < n && arr[left] > arr[largest]) {
+          largest = left;
+        }
+
+        if (right < n && arr[right] > arr[largest]) {
+          largest = right;
+        }
+
+        if (largest !== i) {
+          render(n, [i, largest]);
+          await sleep(time_delay);
+
+          [arr[i], arr[largest]] = [arr[largest], arr[i]];
+
+          render(n, [i, largest]);
+          await sleep(time_delay);
+
+          await heapify(n, largest);
+        }
+      }
+
+      async function buildHeap() {
+        const buildBtn = document.getElementById("build-heap-btn");
+        const sortBtn = document.getElementById("sort-btn");
+        buildBtn.disabled = true;
+
+        for (let i = Math.floor(SIZE / 2) - 1; i >= 0; i--) {
+          await heapify(SIZE, i);
+        }
+        render(SIZE);
+        sortBtn.disabled = false;
+      }
+
+      async function heapSort() {
+        const sortBtn = document.getElementById("sort-btn");
+        sortBtn.disabled = true;
+
+        for (let i = SIZE - 1; i > 0; i--) {
+          render(i + 1, [0, i]);
+          await sleep(time_delay);
+
+          [arr[0], arr[i]] = [arr[i], arr[0]];
+
+          render(i, [0, i]);
+          await sleep(time_delay);
+
+          await heapify(i, 0);
+        }
+        render(0); // All sorted
+      }
+
+      // --- Initialization and Helpers ---
+      function initializeData() {
+        arr = [];
+        for (let i = 0; i < SIZE; i++) {
+          arr.push(Math.floor(Math.random() * MAX_VAL) + 1);
+        }
+      }
+
+      function addListeners() {
+        document
+          .getElementById("build-heap-btn")
+          .addEventListener("click", buildHeap);
+        document.getElementById("sort-btn").addEventListener("click", heapSort);
+      }
+
+      function sleep(ms) {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+      }
+
+      function init() {
+        initializeData();
+        render(SIZE);
+        addListeners();
+      }
+
+      init();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Insertion Sort - DSA Verse</title>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --primary-color: #4ade80;
+        --dark-bg: #111827;
+        --card-bg: rgba(31, 41, 55, 0.65);
+        --text-color: #e5e7eb;
+        --compare-color: #facc15;
+        --bar-color: #4b5563;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: "Poppins", sans-serif;
+        background: linear-gradient(135deg, var(--dark-bg), #1e293b 80%);
+        color: var(--text-color);
+        min-height: 100vh;
+        text-align: center;
+      }
+      #main-content {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 2.5rem 1rem;
+      }
+      .heading {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #fff;
+        text-shadow: 0 0 16px rgba(74, 222, 128, 0.5);
+        margin-bottom: 2.2rem;
+        letter-spacing: 1.5px;
+      }
+      .canvas-container {
+        background: var(--card-bg);
+        backdrop-filter: blur(10px);
+        border-radius: 18px;
+        padding: 1.2rem 0.5rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        margin-bottom: 2rem;
+      }
+      .grid {
+        display: block;
+        margin: 0 auto;
+        border-radius: 10px;
+        background: transparent;
+      }
+      .controls-panel {
+        display: flex;
+        justify-content: center;
+        gap: 1.3rem;
+        margin-bottom: 2.2rem;
+      }
+      .control-btn {
+        background: var(--primary-color);
+        color: var(--dark-bg);
+        border: none;
+        padding: 0.75rem 2rem;
+        border-radius: 50px;
+        font-weight: 700;
+        font-size: 1.1rem;
+        cursor: pointer;
+        transition: 0.2s;
+        box-shadow: 0 2px 12px rgba(74, 222, 128, 0.15);
+      }
+      .control-btn:disabled {
+        background: #4b5563;
+        cursor: not-allowed;
+      }
+      .control-btn:hover:not(:disabled) {
+        transform: scale(1.06);
+        box-shadow: 0 4px 18px rgba(74, 222, 128, 0.25);
+      }
+      .legend {
+        display: flex;
+        justify-content: center;
+        gap: 1.5rem;
+        margin-top: 1.5rem;
+      }
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1rem;
+      }
+      .legend-color {
+        width: 22px;
+        height: 22px;
+        border-radius: 4px;
+        border: 1px solid var(--bar-color);
+        display: inline-block;
+      }
+      .legend-color.compare {
+        background: var(--compare-color);
+      }
+      .legend-color.default {
+        background: var(--bar-color);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="main-content">
+      <div class="heading">Insertion Sort</div>
+      <div class="canvas-container">
+        <canvas class="grid" width="1000" height="500"></canvas>
+      </div>
+      <div class="controls-panel">
+        <button class="control-btn sort">Sort</button>
+        <button class="control-btn reset">Reset</button>
+      </div>
+      <div class="legend">
+        <div class="legend-item">
+          <span class="legend-color compare"></span>Comparing
+        </div>
+        <div class="legend-item">
+          <span class="legend-color default"></span>Unsorted
+        </div>
+      </div>
+    </div>
+    <script>
+      // Main
+      let ctx = document.querySelector("canvas").getContext("2d");
+      let size = 30;
+      let arr = [];
+      let max = 50;
+      let time_delay = 200;
+
+      init();
+
+      function initialize_array() {
+        let min = 10;
+        arr = [];
+        for (let i = 0; i < size; i++) {
+          let p = Math.floor(Math.random() * (max - min) + min);
+          arr.push(p);
+        }
+      }
+
+      async function animation(color = -1) {
+        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        let pw = ctx.canvas.width / size;
+        for (let i = 0; i < size; i++) {
+          ctx.beginPath();
+          let barColor = getComputedStyle(
+            document.documentElement
+          ).getPropertyValue("--bar-color");
+          if (i == color)
+            barColor = getComputedStyle(
+              document.documentElement
+            ).getPropertyValue("--compare-color");
+          ctx.fillStyle = barColor;
+          ctx.fillRect(
+            i * pw,
+            ctx.canvas.height - arr[i] * (ctx.canvas.height / max),
+            pw - 2,
+            arr[i] * (ctx.canvas.height / max)
+          );
+          ctx.strokeStyle = "#222";
+          ctx.strokeRect(
+            i * pw,
+            ctx.canvas.height - arr[i] * (ctx.canvas.height / max),
+            pw - 2,
+            arr[i] * (ctx.canvas.height / max)
+          );
+          ctx.closePath();
+        }
+      }
+
+      function init() {
+        initialize_array();
+        animation();
+        add_listeners();
+      }
+
+      function add_listeners() {
+        document.querySelector(".sort").onclick = async () => {
+          document.querySelector(".sort").disabled = true;
+          document.querySelector(".reset").disabled = true;
+          await sort();
+          document.querySelector(".sort").disabled = false;
+          document.querySelector(".reset").disabled = false;
+        };
+        document.querySelector(".reset").onclick = () => {
+          document.querySelector(".sort").disabled = false;
+          init();
+        };
+      }
+
+      async function sort() {
+        for (let i = 0; i < size; i++) {
+          let pos = i;
+          let temp = arr[i];
+          let j = i - 1;
+          while (j >= 0 && arr[j] > temp) {
+            arr[j + 1] = arr[j];
+            j--;
+            await sleep(time_delay).then(() => {
+              animation(j);
+            });
+          }
+          arr[j + 1] = temp;
+          await sleep(time_delay).then(() => {
+            animation(-1);
+          });
+        }
+        await sleep(time_delay).then(() => {
+          animation(-1);
+        });
+      }
+
+      function sleep(ms) {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+      }
+    </script>
+  </body>
+</html>

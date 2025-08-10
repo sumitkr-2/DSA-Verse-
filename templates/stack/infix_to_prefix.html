@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Infix To Prefix - DSA Verse</title>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Roboto+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      :root {
+        --primary-color: #4ade80;
+        --dark-bg: #111827;
+        --light-dark-bg: #1f2937;
+        --card-bg: rgba(31, 41, 55, 0.5);
+        --text-color: #e5e7eb;
+        --border-color: rgba(255, 255, 255, 0.1);
+        --scan-color: #facc15; /* Yellow */
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        font-family: "Poppins", sans-serif;
+        background: linear-gradient(
+          135deg,
+          var(--light-dark-bg),
+          var(--dark-bg)
+        );
+        color: var(--text-color);
+        min-height: 100vh;
+        overflow-x: hidden;
+        text-align: center;
+      }
+
+      #main-content {
+        padding: 3rem 1.5rem;
+        max-width: 1050px;
+        margin: 0 auto;
+      }
+      .page-header {
+        text-align: center;
+        margin-bottom: 2.5rem;
+      }
+      .back-link {
+        text-decoration: none;
+      }
+      .heading {
+        font-weight: 700;
+        font-size: clamp(2.5rem, 5vw, 3.5rem);
+        color: #fff;
+        text-shadow: 0 0 15px rgba(74, 222, 128, 0.6);
+        transition: transform 0.3s ease;
+      }
+      .back-link:hover .heading {
+        transform: scale(1.05);
+      }
+
+      .canvas-container {
+        background: var(--card-bg);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 1rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        margin-bottom: 2rem;
+      }
+      .grid {
+        width: 100%;
+        height: auto;
+        border-radius: 8px;
+      }
+
+      .controls-panel {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-bottom: 1rem;
+      }
+      .controls-panel input {
+        background: var(--dark-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 0.75rem;
+        color: var(--text-color);
+        font-family: "Poppins", sans-serif;
+        font-size: 1rem;
+        width: 300px;
+      }
+      .control-btn {
+        background-color: var(--primary-color);
+        color: var(--dark-bg);
+        border: none;
+        padding: 0.75rem 2rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+      .control-btn:hover {
+        transform: scale(1.05);
+      }
+      .control-btn:disabled {
+        background-color: #4b5563;
+        cursor: not-allowed;
+      }
+
+      .info-box {
+        background: var(--dark-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+        display: inline-block;
+      }
+      .info-box span {
+        font-weight: 600;
+        color: var(--primary-color);
+        font-family: "Roboto Mono", monospace;
+      }
+
+      .note {
+        font-size: 0.9rem;
+        color: #9ca3af;
+        margin-bottom: 1rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="main-content">
+      <div class="page-header">
+        <a href="../stack.html" class="back-link"
+          ><h1 class="heading">Infix to Prefix</h1></a
+        >
+      </div>
+      <div class="canvas-container">
+        <canvas class="grid" width="1000" height="550"></canvas>
+      </div>
+      <div class="info-box" id="reversed-expr-box" style="display: none">
+        Reversed Infix: <span id="reversed-expr"></span>
+      </div>
+      <div class="controls-panel">
+        <input
+          class="number"
+          id="expr-input"
+          placeholder="Enter infix expression (e.g., (a+b)/(a-b))"
+        />
+        <button class="control-btn evaluate">Evaluate</button>
+      </div>
+      <div class="note">
+        <b>Note:</b> Expression can only contain a, b, ^, /, *, +, -, (, )
+      </div>
+    </div>
+
+    <script>
+      // --- Main Setup ---
+      const ctx = document.querySelector("canvas").getContext("2d");
+      const time_delay = 800;
+      const priority = { "(": 0, "+": 1, "-": 1, "/": 2, "*": 2, "^": 3 };
+
+      const theme = {
+        primary: getComputedStyle(document.documentElement)
+          .getPropertyValue("--primary-color")
+          .trim(),
+        scan: getComputedStyle(document.documentElement)
+          .getPropertyValue("--scan-color")
+          .trim(),
+        text: getComputedStyle(document.documentElement)
+          .getPropertyValue("--text-color")
+          .trim(),
+        dark: getComputedStyle(document.documentElement)
+          .getPropertyValue("--dark-bg")
+          .trim(),
+        cardBg: "rgba(255, 255, 255, 0.1)",
+      };
+
+      // --- Drawing Functions ---
+      function renderTable(history) {
+        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        const rowHeight = 25;
+        const headers = ["Symbol", "Stack", "Result (Postfix of Reversed)"];
+        const colWidths = [150, 400, 450];
+
+        // Draw headers
+        ctx.font = "600 16px Poppins";
+        ctx.fillStyle = theme.primary;
+        let currentX = 0;
+        headers.forEach((header, i) => {
+          ctx.fillText(header, currentX + colWidths[i] / 2, 20);
+          currentX += colWidths[i];
+        });
+
+        // Draw history rows
+        ctx.font = "500 14px 'Roboto Mono', monospace";
+        history.forEach((step, i) => {
+          const y = (i + 2) * rowHeight;
+          currentX = 0;
+
+          // Highlight row being processed
+          if (i === history.length - 1) {
+            ctx.fillStyle = "rgba(74, 222, 128, 0.1)";
+            ctx.fillRect(0, y - rowHeight / 2 - 5, ctx.canvas.width, rowHeight);
+          }
+
+          ctx.fillStyle = theme.text;
+          // Symbol
+          ctx.fillText(step.symbol, currentX + colWidths[0] / 2, y);
+          currentX += colWidths[0];
+          // Stack
+          ctx.fillText(step.stack.join(" "), currentX + 20, y);
+          currentX += colWidths[1];
+          // Result
+          ctx.fillText(step.result, currentX + 20, y);
+        });
+      }
+
+      // --- Conversion Logic ---
+      async function infixToPrefix(string) {
+        const button = document.querySelector(".evaluate");
+        button.disabled = true;
+
+        let prefix = "";
+        let stack = [];
+        let history = [];
+
+        for (let i = 0; i < string.length; i++) {
+          const symbol = string[i];
+          if (symbol === "a" || symbol === "b") {
+            prefix += symbol;
+          } else if (stack.length === 0 || symbol === "(") {
+            stack.push(symbol);
+          } else if (symbol === ")") {
+            while (stack.length > 0 && stack[stack.length - 1] !== "(") {
+              prefix += stack.pop();
+            }
+            if (stack.length > 0) stack.pop(); // Pop '('
+          } else {
+            while (
+              stack.length > 0 &&
+              priority[symbol] < priority[stack[stack.length - 1]]
+            ) {
+              prefix += stack.pop();
+            }
+            stack.push(symbol);
+          }
+          history.push({
+            symbol: `Scan '${symbol}'`,
+            stack: [...stack],
+            result: prefix,
+          });
+          renderTable(history);
+          await sleep(time_delay);
+        }
+
+        while (stack.length > 0) {
+          prefix += stack.pop();
+          history.push({
+            symbol: `Pop from stack`,
+            stack: [...stack],
+            result: prefix,
+          });
+          renderTable(history);
+          await sleep(time_delay);
+        }
+
+        const finalPrefix = prefix.split("").reverse().join("");
+        history.push({
+          symbol: "Reverse Result",
+          stack: [],
+          result: finalPrefix,
+        });
+        renderTable(history);
+
+        button.disabled = false;
+      }
+
+      // --- Initialization and Helpers ---
+      function addListeners() {
+        document.querySelector(".evaluate").addEventListener("click", () => {
+          const val = document.getElementById("expr-input").value.trim();
+          const validChars = "ab^/*+-()";
+          if (val.length > 20 || val.length <= 0) {
+            alert("Expression length must be between 1 and 20.");
+            return;
+          }
+          for (let char of val) {
+            if (!validChars.includes(char)) {
+              alert(`Invalid character detected: '${char}'`);
+              return;
+            }
+          }
+
+          // Step 1: Reverse the string
+          const reversed = val
+            .split("")
+            .reverse()
+            .map((c) => (c === "(" ? ")" : c === ")" ? "(" : c))
+            .join("");
+
+          document.getElementById("reversed-expr").textContent = reversed;
+          document.getElementById("reversed-expr-box").style.display =
+            "inline-block";
+
+          // Step 2 & 3: Run the conversion
+          infixToPrefix(reversed);
+        });
+      }
+
+      function sleep(ms) {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+      }
+
+      function init() {
+        renderTable([]); // Initial empty table
+        addListeners();
+      }
+
+      init();
+    </script>
+  </body>
+</html>

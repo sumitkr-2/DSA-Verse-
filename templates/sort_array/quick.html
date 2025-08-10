@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Quick Sort (Array) - DSA Verse</title>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Roboto+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --primary-color: #4ade80; /* Green for sorted */
+        --dark-bg: #111827;
+        --light-dark-bg: #1f2937;
+        --card-bg: rgba(31, 41, 55, 0.5);
+        --text-color: #e5e7eb;
+        --border-color: rgba(255, 255, 255, 0.1);
+        --compare-color: #facc15; /* Yellow for comparing */
+        --bar-color: #4b5563; /* Neutral gray for bars */
+        --danger-color: #f87171; /* Red for pivot */
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        font-family: "Poppins", sans-serif;
+        background: linear-gradient(
+          135deg,
+          var(--light-dark-bg),
+          var(--dark-bg)
+        );
+        color: var(--text-color);
+        min-height: 100vh;
+        overflow: hidden;
+        text-align: center;
+      }
+      #main-content {
+        padding: 3rem 1.5rem;
+        max-width: 1050px;
+        margin: 0 auto;
+      }
+      .page-header {
+        text-align: center;
+        margin-bottom: 2.5rem;
+      }
+      .back-link {
+        text-decoration: none;
+      }
+      .heading {
+        font-weight: 700;
+        font-size: clamp(2.5rem, 5vw, 3.5rem);
+        color: #fff;
+        text-shadow: 0 0 15px rgba(74, 222, 128, 0.6);
+        transition: transform 0.3s ease;
+      }
+      .back-link:hover .heading {
+        transform: scale(1.05);
+      }
+      .canvas-container {
+        background: var(--card-bg);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 1rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        margin-bottom: 2rem;
+      }
+      .grid {
+        width: 100%;
+        height: auto;
+        border-radius: 8px;
+      }
+      .controls-panel {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+      }
+      .control-btn {
+        background-color: var(--primary-color);
+        color: var(--dark-bg);
+        border: none;
+        padding: 0.75rem 2rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+      .control-btn#reset-btn {
+        background-color: var(--card-bg);
+        color: var(--text-color);
+        border: 1px solid var(--border-color);
+      }
+      .control-btn:hover {
+        transform: scale(1.05);
+      }
+      .control-btn:disabled {
+        background-color: #4b5563;
+        cursor: not-allowed;
+      }
+      .legend {
+        display: flex;
+        justify-content: center;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+      }
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .legend-color {
+        width: 20px;
+        height: 20px;
+        border-radius: 4px;
+        border: 1px solid var(--border-color);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="main-content">
+      <div class="page-header">
+        <a href="../sort_array.html" class="back-link"
+          ><h1 class="heading">Quick Sort (Array)</h1></a
+        >
+      </div>
+      <div class="canvas-container">
+        <canvas class="grid" width="1000" height="300"></canvas>
+      </div>
+      <div class="controls-panel">
+        <button class="control-btn" id="visualize-btn">Visualize</button>
+        <button class="control-btn" id="reset-btn">Reset</button>
+      </div>
+      <div class="legend">
+        <div class="legend-item">
+          <div
+            class="legend-color"
+            style="background-color: var(--compare-color)"
+          ></div>
+          <span>Comparing</span>
+        </div>
+        <div class="legend-item">
+          <div
+            class="legend-color"
+            style="background-color: var(--danger-color)"
+          ></div>
+          <span>Pivot</span>
+        </div>
+        <div class="legend-item">
+          <div
+            class="legend-color"
+            style="background-color: var(--primary-color)"
+          ></div>
+          <span>Sorted</span>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let ctx = document.querySelector("canvas").getContext("2d");
+      const SIZE = 16;
+      const MAX_VAL = 100;
+      const time_delay = 200;
+      let arr = [];
+
+      const theme = {
+        bar: getComputedStyle(document.documentElement)
+          .getPropertyValue("--bar-color")
+          .trim(),
+        compare: getComputedStyle(document.documentElement)
+          .getPropertyValue("--compare-color")
+          .trim(),
+        danger: getComputedStyle(document.documentElement)
+          .getPropertyValue("--danger-color")
+          .trim(),
+        primary: getComputedStyle(document.documentElement)
+          .getPropertyValue("--primary-color")
+          .trim(),
+        text: getComputedStyle(document.documentElement)
+          .getPropertyValue("--text-color")
+          .trim(),
+        dark: getComputedStyle(document.documentElement)
+          .getPropertyValue("--dark-bg")
+          .trim(),
+      };
+
+      function render(
+        comparingIndices = [],
+        pivotIndex = -1,
+        sortedIndices = []
+      ) {
+        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
+        const gap = 5;
+        const barWidth = Math.floor(
+          (ctx.canvas.width - (SIZE + 1) * gap) / SIZE
+        );
+        const rectHeight = 40;
+        const yPos = ctx.canvas.height / 2 - rectHeight / 2;
+
+        for (let i = 0; i < SIZE; i++) {
+          let bgColor = theme.bar;
+          if (comparingIndices.includes(i)) {
+            bgColor = theme.compare;
+          }
+          if (i === pivotIndex) {
+            bgColor = theme.danger;
+          }
+          if (sortedIndices.includes(i)) {
+            bgColor = theme.primary;
+          }
+          const x = gap + i * (barWidth + gap);
+          ctx.fillStyle = bgColor;
+          ctx.fillRect(x, yPos, barWidth, rectHeight);
+
+          ctx.fillStyle =
+            comparingIndices.includes(i) || i === pivotIndex
+              ? theme.dark
+              : theme.text;
+          ctx.font = "600 16px 'Roboto Mono'";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(arr[i], x + barWidth / 2, yPos + rectHeight / 2);
+        }
+      }
+
+      let sortedSet = new Set();
+
+      async function quickSort(low, high) {
+        if (low >= high) {
+          if (low === high) sortedSet.add(low);
+          return;
+        }
+        let pi = await partition(low, high);
+        sortedSet.add(pi);
+        await quickSort(low, pi - 1);
+        await quickSort(pi + 1, high);
+      }
+
+      async function partition(low, high) {
+        let pivot = arr[high];
+        let i = low;
+        for (let j = low; j < high; j++) {
+          render([j], high, Array.from(sortedSet));
+          await sleep(time_delay);
+          if (arr[j] < pivot) {
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+            i++;
+            render([j, i], high, Array.from(sortedSet));
+            await sleep(time_delay);
+          }
+        }
+        [arr[i], arr[high]] = [arr[high], arr[i]];
+        render([], i, Array.from(sortedSet).concat(i));
+        await sleep(time_delay);
+        return i;
+      }
+
+      function sleep(ms) {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+      }
+
+      function initializeArray() {
+        arr = [];
+        sortedSet = new Set();
+        for (let i = 0; i < SIZE; i++) {
+          arr.push(Math.floor(Math.random() * MAX_VAL) + 1);
+        }
+      }
+
+      function addListeners() {
+        document
+          .getElementById("visualize-btn")
+          .addEventListener("click", async () => {
+            document.getElementById("visualize-btn").disabled = true;
+            document.getElementById("reset-btn").disabled = true;
+            await quickSort(0, SIZE - 1);
+            render(
+              [],
+              -1,
+              Array.from({ length: SIZE }, (_, i) => i)
+            );
+            document.getElementById("visualize-btn").disabled = false;
+            document.getElementById("reset-btn").disabled = false;
+          });
+        document.getElementById("reset-btn").addEventListener("click", () => {
+          document.getElementById("visualize-btn").disabled = false;
+          initializeArray();
+          render();
+        });
+      }
+
+      function init() {
+        initializeArray();
+        render();
+        addListeners();
+      }
+
+      init();
+    </script>
+  </body>
+</html>

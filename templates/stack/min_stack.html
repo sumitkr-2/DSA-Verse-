@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Min Stack O(1) Space - DSA Verse</title>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      :root {
+        --primary-color: #4ade80;
+        --dark-bg: #111827;
+        --light-dark-bg: #1f2937;
+        --card-bg: rgba(31, 41, 55, 0.5);
+        --text-color: #e5e7eb;
+        --border-color: rgba(255, 255, 255, 0.1);
+        --min-color: #f87171; /* Red for min value */
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        font-family: "Poppins", sans-serif;
+        background: linear-gradient(
+          135deg,
+          var(--light-dark-bg),
+          var(--dark-bg)
+        );
+        color: var(--text-color);
+        min-height: 100vh;
+        overflow: hidden;
+        text-align: center;
+      }
+
+      #main-content {
+        padding: 3rem 1.5rem;
+        max-width: 1050px;
+        margin: 0 auto;
+      }
+      .page-header {
+        text-align: center;
+        margin-bottom: 2.5rem;
+      }
+      .back-link {
+        text-decoration: none;
+      }
+      .heading {
+        font-weight: 700;
+        font-size: clamp(2.5rem, 5vw, 3.5rem);
+        color: #fff;
+        text-shadow: 0 0 15px rgba(74, 222, 128, 0.6);
+        transition: transform 0.3s ease;
+      }
+      .back-link:hover .heading {
+        transform: scale(1.05);
+      }
+
+      .canvas-container {
+        background: var(--card-bg);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 1rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        margin-bottom: 2rem;
+      }
+      .grid {
+        width: 100%;
+        height: auto;
+        border-radius: 8px;
+      }
+
+      .controls-panel {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-bottom: 2rem;
+      }
+      .control-btn {
+        background-color: var(--primary-color);
+        color: var(--dark-bg);
+        border: none;
+        padding: 0.75rem 2rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+      .control-btn:hover {
+        transform: scale(1.05);
+      }
+
+      .info-display {
+        background: var(--dark-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+        font-weight: 600;
+      }
+      .info-display .value {
+        color: var(--min-color);
+        margin-left: 0.5rem;
+        font-size: 1.2rem;
+      }
+
+      /* Legend */
+      .legend {
+        display: flex;
+        justify-content: center;
+        gap: 1.5rem;
+      }
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .legend-color {
+        width: 20px;
+        height: 20px;
+        border-radius: 4px;
+        border: 1px solid var(--border-color);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="main-content">
+      <div class="page-header">
+        <a href="../stack.html" class="back-link"
+          ><h1 class="heading">Min Stack O(1) Space</h1></a
+        >
+      </div>
+      <div class="canvas-container">
+        <canvas class="grid" width="1000" height="400"></canvas>
+      </div>
+      <div class="controls-panel">
+        <button class="control-btn" id="stack-push">PUSH</button>
+        <button class="control-btn" id="stack-pop">POP</button>
+        <div class="info-display">
+          Min Element: <span class="value" id="min-value">-</span>
+        </div>
+      </div>
+      <div class="legend">
+        <div class="legend-item">
+          <div
+            class="legend-color"
+            style="background-color: var(--primary-color)"
+          ></div>
+          <span>Top</span>
+        </div>
+        <div class="legend-item">
+          <div
+            class="legend-color"
+            style="background-color: #fef08a; border: 1px solid #facc15"
+          ></div>
+          <span style="color: #111827">Encrypted Value</span>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // --- Main Setup ---
+      let sourceArr = [];
+      let stack = [];
+      let minElement = Infinity;
+      const MAX_NUM = 20; // smaller range for better example
+      const STACK_CAPACITY = 10;
+      const SOURCE_ARR_SIZE = 10;
+
+      const canvas = document.querySelector("canvas");
+      const ctx = canvas.getContext("2d");
+
+      const theme = {
+        primary: getComputedStyle(document.documentElement)
+          .getPropertyValue("--primary-color")
+          .trim(),
+        min: getComputedStyle(document.documentElement)
+          .getPropertyValue("--min-color")
+          .trim(),
+        encrypted: "#fef08a",
+        text: getComputedStyle(document.documentElement)
+          .getPropertyValue("--text-color")
+          .trim(),
+        dark: getComputedStyle(document.documentElement)
+          .getPropertyValue("--dark-bg")
+          .trim(),
+        cardBg: "#374151",
+      };
+
+      // --- Drawing Functions ---
+      function render() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawSourceArray();
+        drawStack();
+        updateMinDisplay();
+      }
+
+      function drawSourceArray() {
+        const rect = { width: 60, height: 30 };
+        sourceArr.forEach((val, i) => {
+          ctx.fillStyle = theme.cardBg;
+          ctx.fillRect(
+            i * rect.width + i * 5 + 10,
+            canvas.height / 2 - rect.height / 2,
+            rect.width,
+            rect.height
+          );
+
+          ctx.fillStyle = theme.text;
+          ctx.font = "600 15px Poppins";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(
+            val,
+            i * rect.width + i * 5 + 10 + rect.width / 2,
+            canvas.height / 2
+          );
+        });
+      }
+
+      function drawStack() {
+        const stackWidth = 200;
+        const stackX = canvas.width - stackWidth;
+        const rectHeight = 30;
+
+        ctx.strokeStyle = theme.primary;
+        ctx.lineWidth = 3;
+        ctx.strokeRect(stackX, 0, stackWidth, canvas.height);
+        ctx.font = "700 18px Poppins";
+        ctx.fillStyle = theme.primary;
+        ctx.fillText("MIN STACK", stackX + stackWidth / 2, canvas.height - 20);
+
+        stack.forEach((val, i) => {
+          const isTop = i === stack.length - 1;
+          const isEncrypted = val < minElement;
+          let bgColor = isTop ? theme.primary : theme.text;
+          if (isEncrypted) bgColor = theme.encrypted;
+
+          const y = canvas.height - (i + 1) * rectHeight - i * 5;
+          ctx.fillStyle = bgColor;
+          ctx.fillRect(stackX + 10, y, stackWidth - 20, rectHeight);
+
+          ctx.fillStyle = theme.dark;
+          ctx.font = "600 15px Poppins";
+          ctx.fillText(val, stackX + stackWidth / 2, y + rectHeight / 2);
+        });
+      }
+
+      function updateMinDisplay() {
+        document.getElementById("min-value").textContent =
+          minElement === Infinity ? "-" : minElement;
+      }
+
+      // --- Stack Operations ---
+      function push() {
+        if (stack.length >= STACK_CAPACITY) {
+          alert("Stack overflow!");
+          return;
+        }
+        if (sourceArr.length === 0) {
+          alert("No elements left to push.");
+          return;
+        }
+
+        const val = sourceArr.shift();
+        if (stack.length === 0) {
+          stack.push(val);
+          minElement = val;
+        } else {
+          if (val < minElement) {
+            // Push encrypted value
+            stack.push(2 * val - minElement);
+            minElement = val;
+          } else {
+            stack.push(val);
+          }
+        }
+        render();
+      }
+
+      function pop() {
+        if (stack.length === 0) {
+          alert("Stack underflow!");
+          return;
+        }
+
+        const poppedVal = stack.pop();
+        if (poppedVal < minElement) {
+          // Update minElement from encrypted value
+          minElement = 2 * minElement - poppedVal;
+        }
+
+        if (stack.length === 0) {
+          minElement = Infinity;
+        }
+        render();
+      }
+
+      // --- Initialization and Helpers ---
+      function initializeData() {
+        sourceArr = [];
+        stack = [];
+        minElement = Infinity;
+        for (let i = 0; i < SOURCE_ARR_SIZE; i++) {
+          sourceArr.push(Math.floor(Math.random() * MAX_NUM) + 1);
+        }
+      }
+
+      function addListeners() {
+        document.getElementById("stack-push").addEventListener("click", push);
+        document.getElementById("stack-pop").addEventListener("click", pop);
+      }
+
+      function init() {
+        initializeData();
+        render();
+        addListeners();
+      }
+
+      init();
+    </script>
+  </body>
+</html>
